@@ -13,6 +13,7 @@ dependencies {
 
 application {
   mainClass.set("vertexlink.App")
+  applicationName = "VertexLink"
 }
 
 java {
