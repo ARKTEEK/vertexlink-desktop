@@ -1,18 +1,14 @@
 package vertexlink.controller;
 
-import java.awt.AWTException;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Robot;
 
 import vertexlink.enums.MouseAction;
+import vertexlink.provider.RobotProvider;
 
 public class MouseController {
-  private final Robot robot;
-
-  public MouseController() throws AWTException {
-    this.robot = new Robot();
-  }
+  private final Robot robot = RobotProvider.getInstance();
 
   public void moveRelative(int x, int y) {
     if (this.robot == null) {
