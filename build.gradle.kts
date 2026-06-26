@@ -1,6 +1,7 @@
 plugins {
   application
   java
+  id("org.openjfx.javafxplugin") version "0.1.0"
 }
 
 repositories {
@@ -9,6 +10,11 @@ repositories {
 
 dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+}
+
+javafx {
+  version = "17"
+  modules("javafx.controls", "javafx.fxml")
 }
 
 application {
