@@ -1,0 +1,70 @@
+package vertexlink.networking;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.function.BiConsumer;
+
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceListener;
+
+public class DeviceScanner {
+  private JmDNS jmdns;
+  private ServiceListener listener;
+  private final String serviceType = "_vertexlink._tcp.local.";
+  private final BiConsumer<String, String> onDeviceDiscovered;
+
+  public DeviceScanner(BiConsumer<String, String> onDeviceDiscovered) {
+    this.onDeviceDiscovered = onDeviceDiscovered;
+  }
+
+  public void start() {
+    try {
+      jmdns = JmDNS.create(InetAddress.getLocalHost());
+
+      listener = new ServiceListener() {
+        @Override
+        public void serviceAdded(ServiceEvent event) {
+          jmdns.requestServiceInfo(event.getType(), event.getName());
+        }
+
+        @Override
+        public void serviceRemoved(ServiceEvent event) {
+        }
+
+        @Override
+        public void serviceResolved(ServiceEvent event) {
+          String name = event.getName();
+          String address = event.getInfo().getHostAddresses()[0];
+
+          onDeviceDiscovered.accept(name, address);
+        }
+      };
+
+      jmdns.addServiceListener(serviceType, listener);
+    } catch (IOException exception) {
+      exception.printStackTrace();
+    }
+  }
+
+  public void stop() {
+    if (jmdns == null) {
+      return;
+    }
+
+    if (listener == null) {
+      return;
+    }
+
+    jmdns.removeServiceListener(serviceType, listener);
+
+    try {
+      jmdns.close();
+    } catch (IOException exception) {
+      exception.printStackTrace();
+    }
+
+    jmdns = null;
+    listener = null;
+  }
+}
