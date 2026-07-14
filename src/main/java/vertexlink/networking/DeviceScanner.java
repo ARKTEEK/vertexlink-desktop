@@ -11,11 +11,13 @@ import javax.jmdns.ServiceListener;
 public class DeviceScanner {
   private JmDNS jmdns;
   private ServiceListener listener;
+  private final String deviceId;
   private final String serviceType = "_vertexlink._tcp.local.";
   private final BiConsumer<String, String> onDeviceDiscovered;
 
-  public DeviceScanner(BiConsumer<String, String> onDeviceDiscovered) {
+  public DeviceScanner(BiConsumer<String, String> onDeviceDiscovered, String deviceId) {
     this.onDeviceDiscovered = onDeviceDiscovered;
+    this.deviceId = deviceId;
   }
 
   public void start() {
@@ -36,6 +38,11 @@ public class DeviceScanner {
         public void serviceResolved(ServiceEvent event) {
           String name = event.getName();
           String address = event.getInfo().getHostAddresses()[0];
+          String id = event.getInfo().getPropertyString("device_id");
+
+          if (id.equals(deviceId)) {
+            return;
+          }
 
           onDeviceDiscovered.accept(name, address);
         }

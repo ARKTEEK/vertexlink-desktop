@@ -6,72 +6,81 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
+import vertexlink.device.DeviceIdentity;
 import vertexlink.networking.DeviceBroadcaster;
 import vertexlink.networking.DeviceScanner;
 
 public class DashboardView {
+
   private final VBox root;
   private final Label statusLabel;
   private final Button toggleButton;
   private final ListView<String> deviceListView;
+
+  private final DeviceIdentity identity = new DeviceIdentity();
+  private final String deviceId = identity.getId();
+
   private final DeviceScanner scanner;
   private final DeviceBroadcaster broadcaster = new DeviceBroadcaster();
+
   private boolean isScanning = false;
 
   public DashboardView() {
+
     this.root = new VBox(20);
     this.root.setAlignment(Pos.CENTER);
-    this.root.getStyleClass().add("root");
 
     Label titleLabel = new Label("VertexLink Dashboard");
-    titleLabel.getStyleClass().add("title-text");
 
     this.statusLabel = new Label("Server Status: Idle");
-    this.statusLabel.getStyleClass().add("status-label");
 
     this.deviceListView = new ListView<>();
 
     this.scanner = new DeviceScanner((name, address) -> {
       Platform.runLater(() -> {
-        if ("DesktopServer".equals(name)) {
-          return;
-        }
-
         String entry = name + " [" + address + "]";
 
-        if (!this.deviceListView.getItems().contains(entry)) {
-          this.deviceListView.getItems().add(entry);
+        if (!deviceListView.getItems().contains(entry)) {
+          deviceListView.getItems().add(entry);
         }
       });
-    });
+    }, deviceId);
 
     this.toggleButton = new Button("Start Server");
-    this.toggleButton.getStyleClass().add("control-button");
-    this.toggleButton.setOnAction(event -> {
-      handleServerToggle();
-    });
+    this.toggleButton.setOnAction(e -> handleServerToggle());
 
-    this.root.getChildren().addAll(titleLabel, this.statusLabel, this.toggleButton, this.deviceListView);
-  }
-
-  public VBox getRoot() {
-    return this.root;
+    this.root.getChildren().addAll(
+        titleLabel,
+        statusLabel,
+        toggleButton,
+        deviceListView);
   }
 
   private void handleServerToggle() {
-    if (this.isScanning) {
-      this.scanner.stop();
-      this.broadcaster.stop();
-      this.statusLabel.setText("Server Status: Idle");
-      this.toggleButton.setText("Start Server");
-      this.deviceListView.getItems().clear();
-      this.isScanning = false;
+    if (isScanning) {
+      scanner.stop();
+      broadcaster.stop();
+
+      statusLabel.setText("Server Status: Idle");
+      toggleButton.setText("Start Server");
+
+      deviceListView.getItems().clear();
+
+      isScanning = false;
+
     } else {
-      this.broadcaster.start("DesktopServer", 28401);
-      this.scanner.start();
-      this.statusLabel.setText("Server Status: Running");
-      this.toggleButton.setText("Stop Server");
-      this.isScanning = true;
+      broadcaster.start("DesktopServer", 28401, identity.getId());
+
+      scanner.start();
+
+      statusLabel.setText("Server Status: Running");
+      toggleButton.setText("Stop Server");
+
+      isScanning = true;
     }
+  }
+
+  public VBox getRoot() {
+    return root;
   }
 }
