@@ -3,6 +3,9 @@ package vertexlink.networking;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
 import javax.jmdns.JmDNS;
@@ -12,6 +15,7 @@ import javax.jmdns.ServiceListener;
 public class DeviceScanner {
   private JmDNS jmdns;
   private ServiceListener listener;
+  private ScheduledExecutorService scheduler;
   private final String deviceId;
   private final String serviceType = "_vertexlink._tcp.local.";
   private final BiConsumer<String, String> onDeviceDiscovered;
@@ -22,6 +26,17 @@ public class DeviceScanner {
   }
 
   public void start() {
+    if (this.scheduler != null) {
+      return;
+    }
+
+    this.scheduler = Executors.newSingleThreadScheduledExecutor();
+    this.scheduler.scheduleAtFixedRate(() -> {
+      startScan();
+    }, 0, 10, TimeUnit.SECONDS);
+  }
+
+  private void startScan() {
     try {
       jmdns = JmDNS.create(InetAddress.getLocalHost());
 
@@ -54,30 +69,44 @@ public class DeviceScanner {
       };
 
       jmdns.addServiceListener(serviceType, listener);
+
+      this.scheduler.schedule(() -> {
+        stopScan();
+      }, 3, TimeUnit.SECONDS);
+
     } catch (IOException exception) {
       exception.printStackTrace();
     }
   }
 
-  public void stop() {
-    if (jmdns == null) {
+  private void stopScan() {
+    if (this.jmdns == null) {
       return;
     }
 
-    if (listener == null) {
+    if (this.listener == null) {
       return;
     }
 
-    jmdns.removeServiceListener(serviceType, listener);
+    this.jmdns.removeServiceListener(serviceType, this.listener);
 
     try {
-      jmdns.close();
+      this.jmdns.close();
     } catch (IOException exception) {
       exception.printStackTrace();
     }
 
-    jmdns = null;
-    listener = null;
+    this.jmdns = null;
+    this.listener = null;
+  }
+
+  public void stop() {
+    if (this.scheduler != null) {
+      this.scheduler.shutdown();
+      this.scheduler = null;
+    }
+
+    stopScan();
   }
 
   private boolean isIPv4(String address) {
