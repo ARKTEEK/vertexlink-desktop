@@ -1,6 +1,7 @@
 package vertexlink.networking;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.function.BiConsumer;
 
@@ -40,6 +41,10 @@ public class DeviceScanner {
           String address = event.getInfo().getHostAddresses()[0];
           String id = event.getInfo().getPropertyString("device_id");
 
+          if (!isIPv4(address)) {
+            return;
+          }
+
           if (id.equals(deviceId)) {
             return;
           }
@@ -73,5 +78,19 @@ public class DeviceScanner {
 
     jmdns = null;
     listener = null;
+  }
+
+  private boolean isIPv4(String address) {
+    try {
+      InetAddress inetAddress = InetAddress.getByName(address);
+
+      if (inetAddress instanceof Inet4Address) {
+        return true;
+      }
+    } catch (Exception exception) {
+
+    }
+
+    return false;
   }
 }
