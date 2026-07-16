@@ -10,6 +10,7 @@ repositories {
 
 dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+  implementation("org.jmdns:jmdns:3.6.3")
 }
 
 javafx {
