@@ -6,7 +6,6 @@ import java.net.InetAddress;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -18,9 +17,9 @@ public class DeviceScanner {
   private ScheduledExecutorService scheduler;
   private final String deviceId;
   private final String serviceType = "_vertexlink._tcp.local.";
-  private final BiConsumer<String, String> onDeviceDiscovered;
+  private final DeviceDiscoveredListener onDeviceDiscovered;
 
-  public DeviceScanner(BiConsumer<String, String> onDeviceDiscovered, String deviceId) {
+  public DeviceScanner(DeviceDiscoveredListener onDeviceDiscovered, String deviceId) {
     this.onDeviceDiscovered = onDeviceDiscovered;
     this.deviceId = deviceId;
   }
@@ -64,7 +63,9 @@ public class DeviceScanner {
             return;
           }
 
-          onDeviceDiscovered.accept(name, address);
+          System.out.println("[DeviceScanner] " + id);
+
+          onDeviceDiscovered.onDiscovered(id, name, address);
         }
       };
 

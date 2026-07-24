@@ -2,40 +2,39 @@ package vertexlink;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import vertexlink.ui.Sidebar;
-import vertexlink.ui.ViewManager;
+import javafx.stage.StageStyle;
+import vertexlink.ui.resources.global.TitleBar;
 import vertexlink.ui.view.DashboardView;
 
 public class App extends Application {
-
   @Override
   public void start(Stage primaryStage) {
-    BorderPane windowShell = new BorderPane();
+    primaryStage.initStyle(StageStyle.UNDECORATED);
 
-    Sidebar sidebar = new Sidebar();
-    windowShell.setLeft(sidebar.getRoot());
+    TitleBar titleBar = new TitleBar(primaryStage, "VertexLink");
 
-    StackPane contentWrapper = new StackPane();
-    windowShell.setCenter(contentWrapper);
+    DashboardView dashboard = new DashboardView(primaryStage);
+    VBox.setVgrow(dashboard.getRoot(), Priority.ALWAYS);
 
-    ViewManager.setContentWrapper(contentWrapper);
-    ViewManager.navigateTo(ViewManager.Screen.DASHBOARD, new DashboardView().getRoot());
+    VBox root = new VBox(titleBar, dashboard.getRoot());
+    root.getStyleClass().add("app-shell");
 
-    Scene scene = new Scene(windowShell, 700, 450);
+    Scene scene = new Scene(root, 470, 600);
     String cssPath = getClass().getResource("/styles/styles.css").toExternalForm();
     scene.getStylesheets().add(cssPath);
 
-    primaryStage.setTitle("VertexLink");
-    primaryStage.getIcons().add(new Image("file:icon.png"));
+    primaryStage.setResizable(false);
     primaryStage.setScene(scene);
     primaryStage.show();
   }
 
   public static void main(String[] args) {
+    System.setProperty("prism.text", "native");
+    System.setProperty("prism.allowhidpi", "true");
+    System.setProperty("prism.lcdtext", "false");
     launch(args);
   }
 }

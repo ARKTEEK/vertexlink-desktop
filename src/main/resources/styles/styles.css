@@ -1,37 +1,399 @@
-.sidebar {
-  -fx-background-color: #1e293b;
-  -fx-padding: 20px 10px 20px 10px;
-  -fx-pref-width: 70px;
-  -fx-border-color: #334155;
-  -fx-border-width: 0 1px 0 0;
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("fonts/PlusJakartaSans-SemiBold.ttf");
 }
 
-.sidebar-button {
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-weight: bold;
+  src: url("fonts/PlusJakartaSans-Bold.ttf");
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/Inter-Regular.ttf");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: 500;
+  src: url("fonts/Inter-Medium.ttf");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("fonts/JetBrainsMono-Regular.ttf");
+}
+
+.root {
+  -bg-root: #09090b;
+  -bg-surface-low: #121215;
+  -bg-surface-mid: #18181b;
+  -bg-surface-high: #27272a;
+  -bg-surface-hover: #3f3f46;
+
+  -border-subtle: #27272a;
+  -border-strong: #3f3f46;
+  -border-focus: #6366f1;
+
+  -accent-primary: #6366f1;
+  -accent-primary-hover: #4f46e5;
+  -accent-subtle: rgba(99, 102, 241, 0.15);
+  -danger: #ef4444;
+  -danger-hover: #dc2626;
+  -success: #10b981;
+
+  -text-primary: #f4f4f5;
+  -text-secondary: #a1a1aa;
+  -text-muted: #71717a;
+
+  -fx-background-color: -bg-root;
+  -fx-font-family: "Inter", sans-serif;
+  -fx-text-fill: -text-primary;
+}
+
+.app-shell {
+  -fx-background-color: -bg-root;
+  -fx-border-color: -border-subtle;
+  -fx-border-width: 1px;
+}
+
+.icon {
+  -fx-fill: -text-secondary;
+}
+
+.icon-button {
   -fx-background-color: transparent;
-  -fx-background-radius: 8px;
-  -fx-min-width: 48px;
-  -fx-min-height: 48px;
-  -fx-max-width: 48px;
-  -fx-max-height: 48px;
+  -fx-background-radius: 6px;
+  -fx-min-width: 32px;
+  -fx-min-height: 32px;
   -fx-cursor: hand;
 }
 
-.sidebar-button:hover {
-  -fx-background-color: #334155;
+.icon-button:hover {
+  -fx-background-color: -bg-surface-high;
 }
 
-.sidebar-icon {
-  -fx-fill: #94a3b8;
+.icon-button:hover .icon {
+  -fx-fill: -text-primary;
 }
 
-.sidebar-button:hover .sidebar-icon {
-  -fx-fill: #f8fafc;
+.title-bar {
+  -fx-background-color: -bg-surface-low;
+  -fx-min-height: 38px;
+  -fx-max-height: 38px;
+  -fx-border-color: transparent transparent -border-subtle transparent;
+  -fx-border-width: 0 0 1 0;
+  -fx-cursor: move;
+  -fx-padding: 0 8 0 12;
 }
 
-.sidebar-button.active-nav {
-  -fx-background-color: #3b82f6;
+.title-bar-badge {
+  -fx-background-color: -accent-subtle;
+  -fx-border-color: -accent-primary;
+  -fx-border-width: 1px;
+  -fx-border-radius: 4px;
+  -fx-background-radius: 4px;
+  -fx-text-fill: -accent-primary;
+  -fx-font-family: "Plus Jakarta Sans";
+  -fx-font-size: 10px;
+  -fx-font-weight: bold;
+  -fx-min-width: 20px;
+  -fx-min-height: 20px;
+  -fx-max-width: 20px;
+  -fx-max-height: 20px;
+  -fx-alignment: center;
 }
 
-.sidebar-button.active-nav .sidebar-icon {
+.title-bar-label {
+  -fx-font-family: "Plus Jakarta Sans";
+  -fx-font-size: 12px;
+  -fx-text-fill: -text-primary;
+  -fx-font-weight: bold;
+}
+
+.title-bar-button {
+  -fx-background-color: transparent;
+  -fx-min-width: 32px;
+  -fx-min-height: 32px;
+  -fx-background-radius: 4px;
+  -fx-cursor: default;
+}
+
+.title-bar-button:hover {
+  -fx-background-color: -bg-surface-high;
+}
+
+.title-bar-button.close-window:hover {
+  -fx-background-color: -danger;
+}
+
+.title-bar-button.close-window:hover .icon {
+  -fx-fill: #ffffff;
+}
+
+.devices-panel {
+  -fx-background-color: -bg-surface-low;
+  -fx-border-color: -border-subtle;
+  -fx-border-width: 0 1px 0 0;
+  -fx-min-width: 280px;
+}
+
+.device-title {
+  -fx-font-family: "Plus Jakarta Sans";
+  -fx-font-size: 14px;
+  -fx-font-weight: bold;
+  -fx-text-fill: -text-primary;
+}
+
+.device-subtitle {
+  -fx-font-size: 12px;
+  -fx-text-fill: -text-muted;
+}
+
+.power-toggle {
+  -fx-background-color: -bg-surface-high;
+  -fx-background-radius: 8px;
+  -fx-border-color: -border-subtle;
+  -fx-border-radius: 8px;
+  -fx-min-width: 32px;
+  -fx-min-height: 32px;
+  -fx-max-width: 32px;
+  -fx-max-height: 32px;
+  -fx-cursor: hand;
+}
+
+.power-toggle:hover {
+  -fx-background-color: -bg-surface-hover;
+}
+
+.power-icon {
+  -fx-fill: -text-muted;
+}
+
+.power-toggle.active {
+  -fx-background-color: -accent-primary;
+  -fx-border-color: transparent;
+}
+
+.power-toggle.active .power-icon {
+  -fx-fill: #ffffff;
+}
+
+.top-bar-button {
+  -fx-background-color: transparent;
+}
+
+.search-field {
+  -fx-background-color: -bg-surface-mid;
+  -fx-background-radius: 6px;
+  -fx-text-fill: -text-primary;
+  -fx-prompt-text-fill: -text-muted;
+  -fx-padding: 8 12;
+  -fx-border-color: -border-subtle;
+  -fx-border-radius: 6px;
+  -fx-font-size: 12px;
+}
+
+.search-field:focused {
+  -fx-border-color: -border-focus;
+  -fx-background-color: -bg-root;
+}
+
+.groups-scroll {
+  -fx-background-color: transparent;
+  -fx-background: transparent;
+}
+
+.groups-scroll>.viewport {
+  -fx-background-color: transparent;
+}
+
+.devices-empty {
+  -fx-text-fill: -text-muted;
+  -fx-font-size: 12px;
+}
+
+.device-row {
+  -fx-cursor: hand;
+  -fx-background-radius: 6px;
+  -fx-padding: 10px;
+  -fx-border-color: transparent;
+  -fx-border-radius: 6px;
+}
+
+.device-row:hover {
+  -fx-background-color: -bg-surface-mid;
+  -fx-border-color: -border-subtle;
+}
+
+.device-row:selected {
+  -fx-background-color: -accent-subtle;
+  -fx-border-color: -accent-primary;
+}
+
+.device-name {
+  -fx-font-size: 13px;
+  -fx-font-weight: 500;
+  -fx-text-fill: -text-primary;
+}
+
+.phone-icon-body {
+  -fx-fill: transparent;
+  -fx-stroke: -text-secondary;
+  -fx-stroke-width: 1.5;
+}
+
+.phone-icon-screen {
+  -fx-fill: -bg-surface-high;
+}
+
+.phone-icon-button {
+  -fx-fill: -text-secondary;
+}
+
+.phone-status-dot {
+  -fx-stroke: -bg-surface-low;
+  -fx-stroke-width: 2;
+}
+
+.fab {
+  -fx-background-radius: 8px;
+  -fx-min-width: 40px;
+  -fx-min-height: 40px;
+  -fx-max-width: 40px;
+  -fx-max-height: 40px;
+  -fx-background-color: -accent-primary;
+  -fx-cursor: hand;
+}
+
+.fab:hover {
+  -fx-background-color: -accent-primary-hover;
+}
+
+.fab-secondary {
+  -fx-background-color: -bg-surface-high;
+  -fx-border-color: -border-subtle;
+  -fx-border-radius: 8px;
+}
+
+.fab-secondary:hover {
+  -fx-background-color: -bg-surface-hover;
+}
+
+.fab-secondary .icon {
+  -fx-fill: -text-primary;
+}
+
+.info-panel {
+  -fx-background-color: -bg-surface-low;
+  -fx-border-color: -border-subtle;
+  -fx-border-width: 0 0 0 1px;
+  -fx-min-width: 300px;
+}
+
+.info-title {
+  -fx-font-family: "Plus Jakarta Sans";
+  -fx-font-size: 15px;
+  -fx-font-weight: bold;
+  -fx-text-fill: -text-primary;
+}
+
+.close-button {
+  -fx-background-color: transparent;
+}
+
+.info-empty {
+  -fx-text-fill: -text-muted;
+  -fx-font-size: 12px;
+}
+
+.device-summary {
+  -fx-background-color: -bg-surface-mid;
+  -fx-background-radius: 10px;
+  -fx-border-color: -border-subtle;
+  -fx-border-radius: 10px;
+}
+
+.summary-device-name {
+  -fx-font-family: "Plus Jakarta Sans";
+  -fx-font-size: 15px;
+  -fx-font-weight: bold;
+  -fx-text-fill: -text-primary;
+}
+
+.status-pill {
+  -fx-background-color: -bg-surface-high;
+  -fx-background-radius: 999px;
+  -fx-border-color: -border-subtle;
+  -fx-border-radius: 999px;
+}
+
+.status-pill-label {
+  -fx-font-size: 11px;
+  -fx-font-weight: 500;
+  -fx-text-fill: -text-secondary;
+}
+
+.info-section-label {
+  -fx-font-family: "Plus Jakarta Sans";
+  -fx-font-size: 11px;
+  -fx-font-weight: bold;
+  -fx-text-fill: -text-muted;
+}
+
+.info-card {
+  -fx-background-color: -bg-surface-mid;
+  -fx-background-radius: 10px;
+  -fx-border-color: -border-subtle;
+  -fx-border-radius: 10px;
+}
+
+.info-row {
+  -fx-border-color: transparent transparent -border-subtle transparent;
+  -fx-border-width: 0 0 1px 0;
+}
+
+.info-row-last {
+  -fx-border-width: 0;
+}
+
+.info-label {
+  -fx-font-size: 11px;
+  -fx-text-fill: -text-muted;
+}
+
+.info-value {
+  -fx-font-family: "JetBrains Mono", monospace;
+  -fx-font-size: 12px;
+  -fx-text-fill: -text-primary;
+}
+
+.copy-button {
+  -fx-background-color: transparent;
+  -fx-background-radius: 4px;
+  -fx-min-width: 24px;
+  -fx-min-height: 24px;
+}
+
+.copy-button:hover {
+  -fx-background-color: -bg-surface-high;
+}
+
+.toggle-track {
+  -fx-stroke: -border-subtle;
+  -fx-fill: -bg-surface-mid;
+}
+
+.toggle-thumb {
+  -fx-fill: -text-secondary;
+}
+
+.toggle-switch:selected .toggle-track {
+  -fx-fill: -accent-primary;
+  -fx-stroke: transparent;
+}
+
+.toggle-switch:selected .toggle-thumb {
   -fx-fill: #ffffff;
 }
