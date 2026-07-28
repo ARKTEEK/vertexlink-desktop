@@ -397,3 +397,40 @@
 .toggle-switch:selected .toggle-thumb {
   -fx-fill: #ffffff;
 }
+
+.pairing-banner {
+  -fx-background-color: #18181b;
+  -fx-border-color: #27272a;
+  -fx-border-width: 1 0 0 0;
+}
+
+.pairing-banner-text {
+  -fx-text-fill: #f4f4f5;
+  -fx-font-size: 13px;
+}
+
+.pairing-banner-button {
+  -fx-background-radius: 6px;
+  -fx-padding: 6px 10px;
+  -fx-cursor: hand;
+}
+
+.pairing-banner-button .icon {
+  -fx-fill: #ffffff;
+}
+
+.pairing-banner-accept {
+  -fx-background-color: #22c55e;
+}
+
+.pairing-banner-accept:hover {
+  -fx-background-color: #16a34a;
+}
+
+.pairing-banner-decline {
+  -fx-background-color: #ef4444;
+}
+
+.pairing-banner-decline:hover {
+  -fx-background-color: #dc2626;
+}

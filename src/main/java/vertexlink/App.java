@@ -6,6 +6,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import vertexlink.controller.DashboardController;
 import vertexlink.ui.resources.global.TitleBar;
 import vertexlink.ui.view.DashboardView;
 
@@ -16,7 +17,8 @@ public class App extends Application {
 
     TitleBar titleBar = new TitleBar(primaryStage, "VertexLink");
 
-    DashboardView dashboard = new DashboardView(primaryStage);
+    DashboardController controller = new DashboardController();
+    DashboardView dashboard = new DashboardView(primaryStage, controller);
     VBox.setVgrow(dashboard.getRoot(), Priority.ALWAYS);
 
     VBox root = new VBox(titleBar, dashboard.getRoot());

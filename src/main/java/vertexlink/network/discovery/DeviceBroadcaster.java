@@ -1,4 +1,4 @@
-package vertexlink.networking;
+package vertexlink.network.discovery;
 
 import java.io.IOException;
 import java.net.InetAddress;

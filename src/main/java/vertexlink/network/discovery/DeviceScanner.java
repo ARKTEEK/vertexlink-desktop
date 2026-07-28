@@ -1,4 +1,4 @@
-package vertexlink.networking;
+package vertexlink.network.discovery;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -10,6 +10,8 @@ import java.util.concurrent.TimeUnit;
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceListener;
+
+import vertexlink.listener.DeviceDiscoveredListener;
 
 public class DeviceScanner {
   private JmDNS jmdns;
@@ -62,8 +64,6 @@ public class DeviceScanner {
           if (id.equals(deviceId)) {
             return;
           }
-
-          System.out.println("[DeviceScanner] " + id);
 
           onDeviceDiscovered.onDiscovered(id, name, address);
         }

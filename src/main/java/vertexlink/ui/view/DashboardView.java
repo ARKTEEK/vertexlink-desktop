@@ -1,75 +1,83 @@
 package vertexlink.ui.view;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
-
 import javafx.application.Platform;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import vertexlink.controller.DashboardController;
 import vertexlink.device.Device;
-import vertexlink.device.DeviceIdentity;
-import vertexlink.enums.DeviceStatus;
-import vertexlink.networking.DeviceBroadcaster;
-import vertexlink.networking.DeviceScanner;
+import vertexlink.listener.DashboardEventListener;
+import vertexlink.network.server.ClientHandler;
 import vertexlink.ui.resources.DevicesListPanel;
 import vertexlink.ui.resources.InformationPanel;
+import vertexlink.ui.resources.PairingBanner;
 
-public class DashboardView {
-  private final HBox root;
-  private final Stage ownerStage;
+public class DashboardView implements DashboardEventListener {
   private static final double COLLAPSED_WIDTH = 470;
   private static final double EXPANDED_WIDTH = 750;
 
-  private final DeviceIdentity identity = new DeviceIdentity();
-  private final DeviceBroadcaster broadcaster = new DeviceBroadcaster();
-  private final DeviceScanner scanner;
-  private boolean connected = false;
+  private final VBox rootContainer;
+  private final HBox mainContent;
+  private final PairingBanner pairingBanner = new PairingBanner();
+  private final Stage ownerStage;
+
   private DevicesListPanel devicesListPanel;
   private InformationPanel informationPanel;
-  private final Map<String, Device> discoveredDevices = new LinkedHashMap<>();
 
-  public DashboardView(Stage ownerStage) {
+  private final DashboardController controller;
+
+  public DashboardView(Stage ownerStage, DashboardController controller) {
     this.ownerStage = ownerStage;
-    this.scanner = new DeviceScanner((id, name, address) -> {
-      Platform.runLater(() -> {
-        onDeviceDiscovered(id, name, address);
-      });
-    }, identity.getId());
+    this.controller = controller;
 
+    this.controller.setEventListener(this);
+
+    initPanels();
+
+    mainContent = new HBox(devicesListPanel, informationPanel);
+    HBox.setHgrow(devicesListPanel, Priority.ALWAYS);
+
+    rootContainer = new VBox(mainContent, pairingBanner);
+    VBox.setVgrow(mainContent, Priority.ALWAYS);
+  }
+
+  private void initPanels() {
     informationPanel = new InformationPanel(this::closeInformationPanel);
     informationPanel.setVisible(false);
     informationPanel.setManaged(false);
 
     devicesListPanel = new DevicesListPanel(
         "VertexLink Desktop",
-        connected,
-        new ArrayList<>(discoveredDevices.values()),
+        controller.isConnected(),
+        controller.getDevicesList(),
         this::onDeviceSelected,
-        this::toggleConnection,
-        this::refreshDevices);
-
-    root = new HBox(devicesListPanel, informationPanel);
-    HBox.setHgrow(devicesListPanel, Priority.ALWAYS);
+        this::handleToggleConnection,
+        controller::refreshDevices);
   }
 
-  private void onDeviceDiscovered(String id, String name, String address) {
-    Device device = discoveredDevices.get(address);
+  @Override
+  public void onPairRequest(String deviceName, String addressKey, String calculatedPin, ClientHandler client,
+      String deviceId) {
+    Platform.runLater(() -> {
+      pairingBanner.showRequest(deviceName, addressKey, calculatedPin, (address, accepted) -> {
+        controller.handlePairingResponse(client, address, deviceId, deviceName, accepted);
+      });
+    });
+  }
 
-    if (device == null) {
-      device = new Device(UUID.randomUUID().toString(), name, id);
-      discoveredDevices.put(address, device);
-    } else {
-      device.setName(name);
-      device.setClientId(id);
-    }
+  @Override
+  public void onDeviceListUpdated(java.util.List<Device> devices) {
+    Platform.runLater(() -> {
+      devicesListPanel.setDevices(devices);
+    });
+  }
 
-    device.setStatus(DeviceStatus.ONLINE);
-    device.setIpv4Address(address);
-
-    devicesListPanel.setDevices(new ArrayList<>(discoveredDevices.values()));
+  @Override
+  public void onDataReceived(String data, String hostAddress) {
+    Platform.runLater(() -> {
+      System.out.println("[Dashboard] Data from " + hostAddress + ": " + data);
+    });
   }
 
   private void onDeviceSelected(Device device) {
@@ -91,31 +99,16 @@ public class DashboardView {
     ownerStage.setWidth(COLLAPSED_WIDTH);
   }
 
-  private void toggleConnection() {
-    connected = !connected;
+  private void handleToggleConnection() {
+    controller.toggleConnection();
+    devicesListPanel.setConnected(controller.isConnected());
 
-    if (connected) {
-      broadcaster.start("DesktopServer", 28401, identity.getId());
-      scanner.start();
-    } else {
-      scanner.stop();
-      broadcaster.stop();
-      discoveredDevices.clear();
-
-      devicesListPanel.setDevices(new ArrayList<>());
-
+    if (!controller.isConnected()) {
       closeInformationPanel();
     }
-
-    devicesListPanel.setConnected(connected);
   }
 
-  private void refreshDevices() {
-    scanner.stop();
-    scanner.start();
-  }
-
-  public HBox getRoot() {
-    return root;
+  public VBox getRoot() {
+    return rootContainer;
   }
 }
