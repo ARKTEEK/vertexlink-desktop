@@ -10,6 +10,7 @@ public class Device {
   private String ipv6Address;
   private String appVersion;
   private DeviceStatus status;
+  private boolean paired;
 
   public Device(String id, String name, String clientId) {
     this.id = id;
@@ -68,5 +69,13 @@ public class Device {
 
   public void setStatus(DeviceStatus status) {
     this.status = status;
+  }
+
+  public boolean isPaired() {
+    return paired;
+  }
+
+  public void setPaired(boolean paired) {
+    this.paired = paired;
   }
 }

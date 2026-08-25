@@ -60,8 +60,8 @@ public class Elements {
 
   public static Button createIconButton(String svgContent) {
     Button button = new Button();
-    button.getStyleClass().add("sidebar-button");
-    button.setGraphic(createIcon(svgContent, "sidebar-icon"));
+    button.getStyleClass().add("icon");
+    button.setGraphic(createIcon(svgContent, "icon"));
 
     return button;
   }

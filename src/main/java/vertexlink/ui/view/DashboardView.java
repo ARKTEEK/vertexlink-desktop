@@ -46,12 +46,12 @@ public class DashboardView implements DashboardEventListener {
     informationPanel = new InformationPanel(this::closeInformationPanel);
     informationPanel.setVisible(false);
     informationPanel.setManaged(false);
-
     devicesListPanel = new DevicesListPanel(
         "VertexLink Desktop",
         controller.isConnected(),
         controller.getDevicesList(),
         this::onDeviceSelected,
+        controller::unpairDevice,
         this::handleToggleConnection,
         controller::refreshDevices);
   }

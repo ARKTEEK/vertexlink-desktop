@@ -238,6 +238,41 @@
   -fx-text-fill: -text-primary;
 }
 
+.devices-section-label {
+  -fx-font-family: "Plus Jakarta Sans";
+  -fx-font-size: 11px;
+  -fx-font-weight: bold;
+  -fx-text-fill: -text-muted;
+  -fx-padding: 8 4 2 4;
+}
+
+.unpair-button {
+  -fx-background-color: transparent;
+  -fx-border-color: -danger;
+  -fx-border-width: 1px;
+  -fx-border-radius: 6px;
+  -fx-background-radius: 6px;
+  -fx-text-fill: -danger;
+  -fx-font-size: 11px;
+  -fx-padding: 4px 10px;
+  -fx-cursor: hand;
+}
+
+.unpair-button:hover {
+  -fx-background-color: -danger;
+  -fx-text-fill: #ffffff;
+}
+
+.unpair-button:pressed {
+  -fx-background-color: derive(-danger, -20%);
+  -fx-text-fill: #ffffff;
+}
+
+.unpair-button:focused {
+  -fx-background-color: derive(-danger, 85%);
+  -fx-border-color: -danger;
+}
+
 .phone-icon-body {
   -fx-fill: transparent;
   -fx-stroke: -text-secondary;

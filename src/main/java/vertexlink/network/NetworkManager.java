@@ -14,7 +14,11 @@ public class NetworkManager {
   private DataListener dataListener;
 
   public interface PairingListener {
-    void onPairRequest(String deviceId, String deviceName, String clientPublicKey, ClientHandler client);
+    void onPairRequest(String deviceId, String deviceName, String publicKey, ClientHandler client);
+
+    void onAuth(String deviceId, String token, ClientHandler client);
+
+    void onDisconnect(ClientHandler client);
   }
 
   public interface DataListener {
@@ -69,23 +73,49 @@ public class NetworkManager {
             decoded.fields.get("publicKey"),
             client);
       }
+    } else if ("AUTH".equals(decoded.type)) {
+      if (pairingListener != null) {
+        pairingListener.onAuth(
+            decoded.fields.get("deviceId"),
+            decoded.fields.get("token"),
+            client);
+      }
     } else {
       System.out.println("[Network] Received data: " + data);
-
       if (dataListener != null) {
         dataListener.onData(data, client);
       }
     }
   }
 
-  public void sendPairAck(ClientHandler client, String myId, String myName, String myPublicKey) {
+  public void sendPairChallenge(ClientHandler client, String myId, String myName, String publicKey) {
     Map<String, String> fields = new LinkedHashMap<>();
 
     fields.put("deviceId", myId);
     fields.put("deviceName", myName);
-    fields.put("publicKey", myPublicKey);
+    fields.put("publicKey", publicKey);
 
-    client.send(Protocol.encode("PAIR_ACK", fields));
+    client.send(Protocol.encode("PAIR_CHALLENGE", fields));
+  }
+
+  public void sendPairSuccess(ClientHandler client, String myId, String myName, String token) {
+    Map<String, String> fields = new LinkedHashMap<>();
+
+    fields.put("deviceId", myId);
+    fields.put("deviceName", myName);
+    fields.put("token", token);
+
+    client.send(Protocol.encode("PAIR_SUCCESS", fields));
+  }
+
+  public void sendAuthResult(ClientHandler client, boolean ok, String reason) {
+    Map<String, String> fields = new LinkedHashMap<>();
+
+    if (!ok && reason != null) {
+      fields.put("reason", reason);
+    }
+
+    client.send(Protocol.encode(ok ? "AUTH_OK" : "AUTH_FAIL", fields));
   }
 
   public void sendPairDecision(ClientHandler client, boolean accepted, String reason) {
