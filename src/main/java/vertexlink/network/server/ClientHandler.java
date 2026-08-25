@@ -8,6 +8,8 @@ import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import javax.net.ssl.SSLSocket;
+
 import vertexlink.network.NetworkManager;
 
 public class ClientHandler extends Thread {
@@ -27,6 +29,10 @@ public class ClientHandler extends Thread {
   @Override
   public void run() {
     try {
+      if (socket instanceof SSLSocket sslSocket) {
+        sslSocket.startHandshake();
+      }
+
       reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
@@ -41,6 +47,7 @@ public class ClientHandler extends Thread {
       }
     } finally {
       close();
+
       server.removeClient(this);
     }
   }

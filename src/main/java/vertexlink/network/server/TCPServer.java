@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+
 import vertexlink.network.NetworkManager;
 
 public class TCPServer extends Thread {
@@ -24,8 +28,18 @@ public class TCPServer extends Thread {
   @Override
   public void run() {
     isRunning = true;
+
     try {
-      serverSocket = new ServerSocket(port);
+      SSLContext sslContext = TLSContextFactory.createServerContext();
+      SSLServerSocketFactory factory = sslContext.getServerSocketFactory();
+      SSLServerSocket sslServerSocket = (SSLServerSocket) factory.createServerSocket(port);
+
+      sslServerSocket.setEnabledProtocols(new String[] { "TLSv1.2", "TLSv1.3" });
+      sslServerSocket.setNeedClientAuth(false);
+
+      this.serverSocket = sslServerSocket;
+
+      System.out.println("[TCP] TLS server listening on " + port);
 
       while (isRunning) {
         Socket socket = serverSocket.accept();
@@ -35,7 +49,7 @@ public class TCPServer extends Thread {
 
         handler.start();
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       if (isRunning) {
         System.err.println("[TCP] Server exception: " + e.getMessage());
       }
