@@ -1,4 +1,4 @@
-package vertexlink.ui.resources;
+package vertexlink.ui.resources.device;
 
 import java.util.function.Consumer;
 
@@ -12,7 +12,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import vertexlink.device.Device;
-import vertexlink.ui.resources.global.Elements;
+import vertexlink.ui.resources.global.ComponentFactory;
+import vertexlink.ui.resources.global.IconFactory;
+import vertexlink.ui.resources.global.IconPaths;
 
 public class DeviceRow extends HBox {
   private static final double ROW_PADDING = 10;
@@ -20,12 +22,13 @@ public class DeviceRow extends HBox {
 
   public DeviceRow(Device device, Consumer<Device> onSelect, Consumer<Device> onUnpair) {
     this.device = device;
+
     setSpacing(10);
     setAlignment(Pos.CENTER_LEFT);
     setPadding(new Insets(ROW_PADDING));
     getStyleClass().add("device-row");
 
-    getChildren().add(Elements.createPhoneIcon(device.getStatus()));
+    getChildren().add(IconFactory.createPhoneIcon(device.getStatus()));
 
     Label nameLabel = new Label(device.getName());
     nameLabel.getStyleClass().add("device-name");
@@ -37,7 +40,7 @@ public class DeviceRow extends HBox {
 
       getChildren().add(spacer);
 
-      Button unpairBtn = Elements.createIconButton(IconPaths.UNPAIR, "fab fab-secondary");
+      Button unpairBtn = ComponentFactory.createIconButton(IconPaths.UNPAIR, "fab fab-secondary");
       unpairBtn.getStyleClass().add("unpair-button");
       unpairBtn.setOnAction(e -> {
         e.consume();

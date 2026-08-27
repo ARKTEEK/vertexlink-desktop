@@ -8,7 +8,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
-import vertexlink.ui.resources.IconPaths;
 
 public class TitleBar extends HBox {
   private double dragOffsetX;
@@ -29,10 +28,10 @@ public class TitleBar extends HBox {
     Region spacer = new Region();
     HBox.setHgrow(spacer, Priority.ALWAYS);
 
-    Button minimizeBtn = Elements.createIconButton(IconPaths.MINIMIZE, "title-bar-button");
+    Button minimizeBtn = ComponentFactory.createIconButton(IconPaths.MINIMIZE, "title-bar-button");
     minimizeBtn.setOnAction(e -> stage.setIconified(true));
 
-    Button closeBtn = Elements.createIconButton(IconPaths.CLOSE, "title-bar-button close-window");
+    Button closeBtn = ComponentFactory.createIconButton(IconPaths.CLOSE, "title-bar-button close-window");
     closeBtn.setOnAction(e -> stage.close());
 
     getChildren().addAll(badge, titleLabel, spacer, minimizeBtn, closeBtn);

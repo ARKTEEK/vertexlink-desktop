@@ -9,9 +9,9 @@ import vertexlink.controller.DashboardController;
 import vertexlink.device.Device;
 import vertexlink.listener.DashboardEventListener;
 import vertexlink.network.server.ClientHandler;
-import vertexlink.ui.resources.DevicesListPanel;
-import vertexlink.ui.resources.InformationPanel;
 import vertexlink.ui.resources.PairingBanner;
+import vertexlink.ui.resources.device.DevicesListPanel;
+import vertexlink.ui.resources.information.InformationPanel;
 
 public class DashboardView implements DashboardEventListener {
   private static final double COLLAPSED_WIDTH = 470;
@@ -24,7 +24,6 @@ public class DashboardView implements DashboardEventListener {
 
   private DevicesListPanel devicesListPanel;
   private InformationPanel informationPanel;
-
   private final DashboardController controller;
 
   public DashboardView(Stage ownerStage, DashboardController controller) {
@@ -46,8 +45,9 @@ public class DashboardView implements DashboardEventListener {
     informationPanel = new InformationPanel(this::closeInformationPanel);
     informationPanel.setVisible(false);
     informationPanel.setManaged(false);
+
     devicesListPanel = new DevicesListPanel(
-        "VertexLink Desktop",
+        "Desktop",
         controller.isConnected(),
         controller.getDevicesList(),
         this::onDeviceSelected,
@@ -56,8 +56,40 @@ public class DashboardView implements DashboardEventListener {
         controller::refreshDevices);
   }
 
+  private void onDeviceSelected(Device device) {
+    informationPanel.showDevice(device);
+
+    if (!informationPanel.isVisible()) {
+      ownerStage.setWidth(EXPANDED_WIDTH);
+      informationPanel.setManaged(true);
+      informationPanel.setVisible(true);
+    }
+  }
+
+  private void closeInformationPanel() {
+    if (informationPanel.isVisible()) {
+      informationPanel.clear();
+      informationPanel.setVisible(false);
+      informationPanel.setManaged(false);
+      ownerStage.setWidth(COLLAPSED_WIDTH);
+    }
+  }
+
+  private void handleToggleConnection() {
+    controller.toggleConnection();
+    devicesListPanel.setConnected(controller.isConnected());
+
+    if (!controller.isConnected()) {
+      closeInformationPanel();
+    }
+  }
+
   @Override
-  public void onPairRequest(String deviceName, String addressKey, String calculatedPin, ClientHandler client,
+  public void onPairRequest(
+      String deviceName,
+      String addressKey,
+      String calculatedPin,
+      ClientHandler client,
       String deviceId) {
     Platform.runLater(() -> {
       pairingBanner.showRequest(deviceName, addressKey, calculatedPin, (address, accepted) -> {
@@ -78,34 +110,6 @@ public class DashboardView implements DashboardEventListener {
     Platform.runLater(() -> {
       System.out.println("[Dashboard] Data from " + hostAddress + ": " + data);
     });
-  }
-
-  private void onDeviceSelected(Device device) {
-    informationPanel.showDevice(device);
-
-    if (!informationPanel.isVisible()) {
-      informationPanel.setVisible(true);
-      informationPanel.setManaged(true);
-
-      ownerStage.setWidth(EXPANDED_WIDTH);
-    }
-  }
-
-  private void closeInformationPanel() {
-    informationPanel.clear();
-    informationPanel.setVisible(false);
-    informationPanel.setManaged(false);
-
-    ownerStage.setWidth(COLLAPSED_WIDTH);
-  }
-
-  private void handleToggleConnection() {
-    controller.toggleConnection();
-    devicesListPanel.setConnected(controller.isConnected());
-
-    if (!controller.isConnected()) {
-      closeInformationPanel();
-    }
   }
 
   public VBox getRoot() {
