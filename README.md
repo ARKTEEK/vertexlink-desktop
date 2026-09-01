@@ -1,4 +1,7 @@
 # VertexLink-Desktop
+> **Warning**
+> 
+> This project is currently a **Work in Progress (WIP)**. Features, protocols, and APIs are subject to change.
 
 VertexLink-Desktop is a Java-based desktop application designed to work with [VertexLink-Android](https://github.com/arkteek/vertexlink-android). It enables users to remotely control their desktop environment's mouse, keyboard, clipboard and audio directly from an Android device with little to no delay.
 
