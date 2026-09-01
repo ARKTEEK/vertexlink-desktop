@@ -32,7 +32,7 @@ public class DeviceHeaderCard extends VBox {
     super(8);
     getStyleClass().add("header-card");
 
-    StackPane avatar = IconFactory.createDesktopIcon(DeviceStatus.OFFLINE);
+    StackPane avatar = IconFactory.createDesktopIcon(DeviceStatus.OFFLINE, 28, 18, false);
     avatar.getStyleClass().add("header-avatar");
 
     Label nameLabel = new Label(deviceName);

@@ -17,7 +17,7 @@ public class DeviceHeroCard extends VBox {
     getStyleClass().add("hero-card");
     setPadding(new Insets(16));
 
-    StackPane icon = IconFactory.createPhoneIcon(device.getStatus(), 30, 46);
+    StackPane icon = IconFactory.createPhoneIcon(device.getStatus(), 30, 46, false);
     icon.getStyleClass().add("hero-avatar");
 
     Label nameLabel = new Label(device.getName());
@@ -27,6 +27,7 @@ public class DeviceHeroCard extends VBox {
     Label pairedBadge = ComponentFactory.createStatusBadge(
         device.isPaired() ? "Paired" : "Not Paired",
         device.isPaired());
+
     Label connectionBadge = ComponentFactory.createStatusBadge(
         connected ? "Online" : "Offline",
         connected);
