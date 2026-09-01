@@ -500,8 +500,7 @@
 
 .power-toggle.active {
   -fx-background-color: -accent-primary;
-  -fx-border-color: transparent;
-  -fx-effect: dropshadow(gaussian, rgba(124, 58, 237, 0.45), 10, 0, 0, 2);
+  -fx-border-color: -accent-primary;
 }
 
 .power-toggle.active .power-icon {
