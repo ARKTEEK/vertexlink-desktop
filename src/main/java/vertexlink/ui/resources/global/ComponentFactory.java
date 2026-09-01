@@ -11,6 +11,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 
 public class ComponentFactory {
 
@@ -59,6 +60,16 @@ public class ComponentFactory {
     Label val = new Label(value == null || value.isEmpty() ? "\u2014" : value);
     val.getStyleClass().add("info-value");
 
+    Tooltip tooltip = new Tooltip(value);
+
+    val.boundsInLocalProperty().addListener((obs, oldBounds, newBounds) -> {
+      if (isTextClipped(val)) {
+        val.setTooltip(tooltip);
+      } else {
+        val.setTooltip(null);
+      }
+    });
+
     Button copyBtn = createIconButton(IconPaths.COPY, "copy-button");
     copyBtn.setTooltip(new Tooltip("Copy"));
     copyBtn.setOnAction(e -> {
@@ -78,5 +89,15 @@ public class ComponentFactory {
     row.setPadding(new Insets(12));
 
     return row;
+  }
+
+  private static boolean isTextClipped(Label label) {
+    Text helperText = new Text(label.getText());
+    helperText.setFont(label.getFont());
+
+    double neededWidth = helperText.getLayoutBounds().getWidth();
+    double availableWidth = label.getWidth() - label.getInsets().getLeft() - label.getInsets().getRight();
+
+    return neededWidth > availableWidth;
   }
 }
