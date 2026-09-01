@@ -15,7 +15,7 @@ import vertexlink.ui.resources.information.InformationPanel;
 
 public class DashboardView implements DashboardEventListener {
   private static final double COLLAPSED_WIDTH = 470;
-  private static final double EXPANDED_WIDTH = 750;
+  private static final double EXPANDED_WIDTH = 770;
 
   private final VBox rootContainer;
   private final HBox mainContent;
@@ -54,16 +54,25 @@ public class DashboardView implements DashboardEventListener {
         controller::unpairDevice,
         this::handleToggleConnection,
         controller::refreshDevices);
+
+    devicesListPanel.setMinWidth(COLLAPSED_WIDTH);
+    devicesListPanel.setMaxWidth(COLLAPSED_WIDTH);
   }
 
   private void onDeviceSelected(Device device) {
     informationPanel.showDevice(device);
 
     if (!informationPanel.isVisible()) {
-      ownerStage.setWidth(EXPANDED_WIDTH);
+      resizeStage(EXPANDED_WIDTH);
       informationPanel.setManaged(true);
       informationPanel.setVisible(true);
     }
+  }
+
+  private void resizeStage(double width) {
+    ownerStage.setMinWidth(width);
+    ownerStage.setMaxWidth(width);
+    ownerStage.setWidth(width);
   }
 
   private void closeInformationPanel() {
@@ -71,7 +80,7 @@ public class DashboardView implements DashboardEventListener {
       informationPanel.clear();
       informationPanel.setVisible(false);
       informationPanel.setManaged(false);
-      ownerStage.setWidth(COLLAPSED_WIDTH);
+      resizeStage(COLLAPSED_WIDTH);
     }
   }
 
