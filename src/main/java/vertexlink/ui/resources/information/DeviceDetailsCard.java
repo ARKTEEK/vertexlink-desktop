@@ -22,8 +22,8 @@ public class DeviceDetailsCard extends VBox {
         ComponentFactory.createInfoRow("App Version", device.getAppVersion()));
 
     if (!card.getChildren().isEmpty()) {
-      card.getChildren().get(card.getChildren().size() - 1)
-          .getStyleClass().add("info-row-last");
+      card.getChildren().get(0).getStyleClass().add("info-row-first");
+      card.getChildren().get(card.getChildren().size() - 1).getStyleClass().add("info-row-last");
     }
 
     getChildren().addAll(sectionLabel, card);

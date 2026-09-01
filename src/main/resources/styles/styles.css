@@ -419,6 +419,10 @@
 .info-row {
   -fx-border-color: transparent transparent -border-subtle transparent;
   -fx-border-width: 0 0 1px 0;
+  -fx-background-radius: 0;
+}
+
+.info-row-first {
   -fx-background-radius: 14px 14px 0 0;
 }
 
