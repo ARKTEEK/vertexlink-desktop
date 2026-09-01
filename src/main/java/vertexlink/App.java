@@ -3,10 +3,12 @@ package vertexlink;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import vertexlink.controller.DashboardController;
+import vertexlink.ui.resources.global.ResizableCanvas;
 import vertexlink.ui.resources.global.TitleBar;
 import vertexlink.ui.view.DashboardView;
 
@@ -19,9 +21,16 @@ public class App extends Application {
 
     DashboardController controller = new DashboardController();
     DashboardView dashboard = new DashboardView(primaryStage, controller);
+
+    ResizableCanvas canvas = new ResizableCanvas();
+    canvas.getStyleClass().add("white-canvas");
+
+    StackPane canvasLayer = new StackPane(canvas, dashboard.getRoot());
+
+    VBox.setVgrow(canvasLayer, Priority.ALWAYS);
     VBox.setVgrow(dashboard.getRoot(), Priority.ALWAYS);
 
-    VBox root = new VBox(titleBar, dashboard.getRoot());
+    VBox root = new VBox(titleBar, canvasLayer);
     root.getStyleClass().add("app-shell");
 
     Scene scene = new Scene(root, 470, 600);

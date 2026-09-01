@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import vertexlink.device.Device;
 import vertexlink.device.DeviceIdentity;
+import vertexlink.device.DeviceState;
 import vertexlink.listener.DashboardEventListener;
 import vertexlink.network.NetworkManager;
 import vertexlink.network.discovery.DeviceBroadcaster;
@@ -14,7 +15,6 @@ import vertexlink.network.discovery.DeviceScanner;
 import vertexlink.network.security.CryptoUtils;
 import vertexlink.network.server.ClientHandler;
 import vertexlink.store.PairedDeviceStore;
-import vertexlink.ui.resources.DeviceState;
 
 public class DashboardController {
   private static final int TCP_PORT = 28401;
