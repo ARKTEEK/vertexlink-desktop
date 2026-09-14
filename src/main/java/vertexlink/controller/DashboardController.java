@@ -1,45 +1,48 @@
 package vertexlink.controller;
 
-import java.security.KeyPair;
-import java.security.PublicKey;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.List;
 
 import vertexlink.device.Device;
+import vertexlink.device.DeviceDirectory;
 import vertexlink.device.DeviceIdentity;
 import vertexlink.device.DeviceState;
 import vertexlink.listener.DashboardEventListener;
 import vertexlink.network.NetworkManager;
 import vertexlink.network.discovery.DeviceBroadcaster;
 import vertexlink.network.discovery.DeviceScanner;
-import vertexlink.network.security.CryptoUtils;
+import vertexlink.network.protocol.ProtocolMessenger;
 import vertexlink.network.server.ClientHandler;
+import vertexlink.pairing.PairingCoordinator;
+import vertexlink.pairing.PairingService;
 import vertexlink.store.PairedDeviceStore;
 
 public class DashboardController {
   private static final int TCP_PORT = 28401;
+  private static final String DESKTOP_NAME = "VertexLink Desktop";
 
-  private KeyPair desktopKeyPair;
   private final DeviceIdentity identity = new DeviceIdentity();
   private final DeviceBroadcaster broadcaster = new DeviceBroadcaster();
-  private final DeviceState deviceState = new DeviceState();
   private final NetworkManager networkManager = new NetworkManager(TCP_PORT);
-  private final PairedDeviceStore pairedDevices = new PairedDeviceStore();
+  private final ProtocolMessenger messenger = new ProtocolMessenger();
+  private final PairingService pairingService = new PairingService(new PairedDeviceStore());
+  private final DeviceDirectory devices = new DeviceDirectory(new DeviceState(), pairingService);
+  private final PairingCoordinator pairing;
   private final DeviceScanner scanner;
 
   private boolean connected = false;
   private DashboardEventListener eventListener;
 
   public DashboardController() {
-    this.scanner = new DeviceScanner((id, name, address) -> {
-      onDeviceDiscovered(id, name, address);
-    }, identity.getId());
+    this.pairing = new PairingCoordinator(pairingService, messenger, devices, identity.getId(), DESKTOP_NAME);
+
+    this.scanner = new DeviceScanner((id, name, address) -> onDeviceDiscovered(id, name, address), identity.getId());
 
     setupNetworkListeners();
   }
 
   public void setEventListener(DashboardEventListener listener) {
     this.eventListener = listener;
+    this.pairing.setEventListener(listener);
   }
 
   private void setupNetworkListeners() {
@@ -47,12 +50,12 @@ public class DashboardController {
 
       @Override
       public void onPairRequest(String deviceId, String deviceName, String publicKey, ClientHandler client) {
-        DashboardController.this.onPairRequest(deviceId, deviceName, publicKey, client);
+        pairing.onPairRequest(deviceId, deviceName, publicKey, client);
       }
 
       @Override
       public void onAuth(String deviceId, String token, ClientHandler client) {
-        DashboardController.this.onAuth(deviceId, token, client);
+        pairing.onAuth(deviceId, token, client);
       }
 
       @Override
@@ -74,11 +77,8 @@ public class DashboardController {
       scanner.stop();
       broadcaster.stop();
       networkManager.stop();
-      deviceState.clear();
-
-      if (eventListener != null) {
-        eventListener.onDeviceListUpdated(deviceState.getDevicesList());
-      }
+      devices.clear();
+      notifyDevicesChanged();
     }
   }
 
@@ -89,74 +89,12 @@ public class DashboardController {
 
   public void handlePairingResponse(ClientHandler client, String addressKey, String deviceId, String deviceName,
       boolean accepted) {
-    if (accepted) {
-      String token = UUID.randomUUID().toString();
-
-      pairedDevices.save(deviceId, deviceName, token);
-
-      networkManager.sendPairSuccess(client, identity.getId(), "VertexLink Desktop", token);
-
-      Device device = deviceState.upsertDevice(addressKey, deviceName, deviceId);
-      device.setPaired(true);
-
-      if (eventListener != null) {
-        eventListener.onDeviceListUpdated(deviceState.getDevicesList());
-      }
-    } else {
-      deviceState.removePendingClient(addressKey);
-
-      networkManager.sendPairDecision(client, false, "Rejected by user");
-
-      client.close();
-    }
-  }
-
-  private void onAuth(String deviceId, String token, ClientHandler client) {
-    Optional<PairedDeviceStore.PairedDevice> stored = pairedDevices.find(deviceId);
-    boolean ok = stored.isPresent() && stored.get().token().equals(token);
-
-    networkManager.sendAuthResult(client, ok, ok ? null : "Unknown device or invalid token");
-
-    if (ok) {
-      String addressKey = client.getAddress().getHostAddress();
-      Device device = deviceState.upsertDevice(addressKey, stored.get().deviceName(), deviceId);
-
-      device.setPaired(true);
-
-      if (eventListener != null) {
-        eventListener.onDeviceListUpdated(deviceState.getDevicesList());
-      }
-    } else {
-      client.close();
-    }
-  }
-
-  private void onPairRequest(String deviceId, String deviceName, String clientPublicKeyStr, ClientHandler client) {
-    String addressKey = client.getAddress().getHostAddress();
-
-    desktopKeyPair = CryptoUtils.generateKeyPair();
-
-    PublicKey clientPublicKey = CryptoUtils.decodePublicKey(clientPublicKeyStr);
-    String desktopPublicKeyStr = CryptoUtils.encodePublicKey(desktopKeyPair.getPublic());
-
-    networkManager.sendPairChallenge(client, identity.getId(), "VertexLink Desktop", desktopPublicKeyStr);
-
-    String calculatedPin = CryptoUtils.calculatePin(desktopKeyPair.getPrivate(), clientPublicKey);
-
-    deviceState.addPendingClient(addressKey, client);
-
-    if (eventListener != null) {
-      eventListener.onPairRequest(deviceName, addressKey, calculatedPin, client, deviceId);
-    }
+    pairing.handlePairingResponse(client, addressKey, deviceId, deviceName, accepted);
   }
 
   private void onDeviceDiscovered(String id, String name, String address) {
-    Device device = deviceState.upsertDevice(address, name, id);
-    device.setPaired(pairedDevices.find(id).isPresent());
-
-    if (eventListener != null) {
-      eventListener.onDeviceListUpdated(deviceState.getDevicesList());
-    }
+    devices.upsertDiscovered(address, name, id);
+    notifyDevicesChanged();
   }
 
   private void onDataReceived(String data, ClientHandler client) {
@@ -166,11 +104,13 @@ public class DashboardController {
   }
 
   public void unpairDevice(Device device) {
-    pairedDevices.remove(device.getClientId());
-    device.setPaired(false);
+    devices.unpair(device);
+    notifyDevicesChanged();
+  }
 
+  private void notifyDevicesChanged() {
     if (eventListener != null) {
-      eventListener.onDeviceListUpdated(deviceState.getDevicesList());
+      eventListener.onDeviceListUpdated(devices.getDevicesList());
     }
   }
 
@@ -178,7 +118,7 @@ public class DashboardController {
     return connected;
   }
 
-  public java.util.List<Device> getDevicesList() {
-    return deviceState.getDevicesList();
+  public List<Device> getDevicesList() {
+    return devices.getDevicesList();
   }
 }
