@@ -1,6 +1,7 @@
 package vertexlink.ui.resources;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -60,6 +61,50 @@ public class PairingBanner extends HBox {
     });
 
     HBox actions = new HBox(8, declineBtn, acceptBtn);
+    actions.setAlignment(Pos.CENTER_RIGHT);
+
+    getChildren().setAll(infoBox, spacer, actions);
+    setVisible(true);
+    setManaged(true);
+  }
+
+  public void showConnectionConflict(String connectedDeviceName, String incomingDeviceName,
+      Consumer<Boolean> onResolved) {
+    StackPane phoneIcon = IconFactory.createPhoneIcon(DeviceStatus.ONLINE, 20, 32);
+
+    Label titleLabel = new Label(incomingDeviceName + " wants to connect");
+    titleLabel.getStyleClass().add("pairing-banner-title");
+
+    Label detailLabel = new Label(connectedDeviceName + " is currently connected");
+    detailLabel.getStyleClass().add("pairing-banner-pin");
+
+    HBox infoBox = new HBox(10, phoneIcon, titleLabel, detailLabel);
+    infoBox.setAlignment(Pos.CENTER_LEFT);
+
+    Region spacer = new Region();
+    HBox.setHgrow(spacer, Priority.ALWAYS);
+
+    Button switchBtn = ComponentFactory.createIconButton(IconPaths.CHECK,
+        "pairing-banner-button pairing-banner-accept");
+    switchBtn.setTooltip(new Tooltip("Switch to " + incomingDeviceName));
+    switchBtn.setOnAction(e -> {
+      if (onResolved != null) {
+        onResolved.accept(true);
+      }
+      hide();
+    });
+
+    Button keepBtn = ComponentFactory.createIconButton(IconPaths.CLOSE,
+        "pairing-banner-button pairing-banner-decline");
+    keepBtn.setTooltip(new Tooltip("Keep " + connectedDeviceName));
+    keepBtn.setOnAction(e -> {
+      if (onResolved != null) {
+        onResolved.accept(false);
+      }
+      hide();
+    });
+
+    HBox actions = new HBox(8, keepBtn, switchBtn);
     actions.setAlignment(Pos.CENTER_RIGHT);
 
     getChildren().setAll(infoBox, spacer, actions);

@@ -140,6 +140,16 @@
   -fx-fill: #ffffff;
 }
 
+/* Connected Device Panel */
+
+.connected-device-card {
+  -fx-background-color: -bg-surface-mid;
+  -fx-background-radius: 14px;
+  -fx-border-color: transparent;
+  -fx-border-radius: 14px;
+  -fx-padding: 12px 14px;
+}
+
 /* Devices Panel */
 
 .devices-panel {
@@ -329,6 +339,36 @@
   -fx-background-color: derive(-danger, 85%);
   -fx-border-color: -danger;
   -fx-opacity: 1;
+}
+
+.header-action-btn.disconnect-btn:hover {
+  -fx-background-color: -danger;
+  -fx-border-color: -danger;
+}
+
+.header-action-btn.disconnect-btn:hover .icon {
+  -fx-fill: #ffffff;
+}
+
+.disconnect-action-btn {
+  -fx-background-color: transparent;
+  -fx-border-color: -danger;
+  -fx-border-radius: 8px;
+  -fx-background-radius: 8px;
+  -fx-min-width: 32px;
+  -fx-min-height: 32px;
+  -fx-max-width: 32px;
+  -fx-max-height: 32px;
+  -fx-cursor: hand;
+}
+
+.disconnect-btn:hover {
+  -fx-background-color: -danger;
+  -fx-border-color: -danger;
+}
+
+.disconnect-btn:hover .icon {
+  -fx-fill: #ffffff;
 }
 
 /* Information Panel */

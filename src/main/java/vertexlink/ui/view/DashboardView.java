@@ -53,10 +53,13 @@ public class DashboardView implements DashboardEventListener {
         this::onDeviceSelected,
         controller::unpairDevice,
         this::handleToggleConnection,
-        controller::refreshDevices);
+        controller::refreshDevices,
+        controller::disconnectConnectedDevice);
 
     devicesListPanel.setMinWidth(COLLAPSED_WIDTH);
     devicesListPanel.setMaxWidth(COLLAPSED_WIDTH);
+
+    devicesListPanel.setConnectedDevice(controller.getConnectedDevice());
   }
 
   private void onDeviceSelected(Device device) {
@@ -104,6 +107,27 @@ public class DashboardView implements DashboardEventListener {
       pairingBanner.showRequest(deviceName, addressKey, calculatedPin, (address, accepted) -> {
         controller.handlePairingResponse(client, address, deviceId, deviceName, accepted);
       });
+    });
+  }
+
+  @Override
+  public void onConnectionConflict(
+      Device connectedDevice,
+      String incomingDeviceName,
+      String addressKey,
+      String deviceId,
+      ClientHandler client) {
+    Platform.runLater(() -> {
+      pairingBanner.showConnectionConflict(connectedDevice.getName(), incomingDeviceName, keepNew -> {
+        controller.resolveConnectionConflict(client, addressKey, deviceId, incomingDeviceName, keepNew);
+      });
+    });
+  }
+
+  @Override
+  public void onConnectedDeviceChanged(Device device) {
+    Platform.runLater(() -> {
+      devicesListPanel.setConnectedDevice(device);
     });
   }
 

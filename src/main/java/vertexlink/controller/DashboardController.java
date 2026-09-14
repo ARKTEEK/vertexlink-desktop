@@ -60,7 +60,7 @@ public class DashboardController {
 
       @Override
       public void onDisconnect(ClientHandler client) {
-        throw new UnsupportedOperationException("Unimplemented method 'onDisconnect'");
+        pairing.onDisconnect(client);
       }
     });
     networkManager.setDataListener(this::onDataReceived);
@@ -92,6 +92,15 @@ public class DashboardController {
     pairing.handlePairingResponse(client, addressKey, deviceId, deviceName, accepted);
   }
 
+  public void resolveConnectionConflict(ClientHandler client, String addressKey, String deviceId, String deviceName,
+      boolean keepNew) {
+    pairing.resolveConnectionConflict(client, addressKey, deviceId, deviceName, keepNew);
+  }
+
+  public void disconnectConnectedDevice() {
+    pairing.disconnectConnectedDevice();
+  }
+
   private void onDeviceDiscovered(String id, String name, String address) {
     devices.upsertDiscovered(address, name, id);
     notifyDevicesChanged();
@@ -116,6 +125,10 @@ public class DashboardController {
 
   public boolean isConnected() {
     return connected;
+  }
+
+  public Device getConnectedDevice() {
+    return devices.getConnectedDevice();
   }
 
   public List<Device> getDevicesList() {

@@ -13,9 +13,11 @@ import vertexlink.device.Device;
 
 public class DevicesListPanel extends VBox {
   private final VBox rowsBox = new VBox(4);
+  private final VBox connectedDeviceBox = new VBox();
   private final VBox emptyState = new DevicesEmptyState();
   private final Consumer<Device> onSelectDevice;
   private final Consumer<Device> onUnpairDevice;
+  private final Runnable onDisconnect;
   private DeviceHeaderCard headerCard;
 
   public DevicesListPanel(
@@ -25,10 +27,12 @@ public class DevicesListPanel extends VBox {
       Consumer<Device> onSelectDevice,
       Consumer<Device> onUnpairDevice,
       Runnable onToggleConnection,
-      Runnable onRefresh) {
+      Runnable onRefresh,
+      Runnable onDisconnect) {
     super(12);
     this.onSelectDevice = onSelectDevice;
     this.onUnpairDevice = onUnpairDevice;
+    this.onDisconnect = onDisconnect;
 
     getStyleClass().add("devices-panel");
     setPrefWidth(260);
@@ -36,10 +40,13 @@ public class DevicesListPanel extends VBox {
 
     this.headerCard = new DeviceHeaderCard(deviceName, connected, onToggleConnection, onRefresh, this::filter);
 
+    connectedDeviceBox.setManaged(false);
+    connectedDeviceBox.setVisible(false);
+
     ScrollPane scrollPane = createScrollPane();
     VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
-    getChildren().addAll(headerCard, scrollPane);
+    getChildren().addAll(headerCard, connectedDeviceBox, scrollPane);
     setDevices(devices);
   }
 
@@ -82,6 +89,21 @@ public class DevicesListPanel extends VBox {
     if (headerCard != null) {
       headerCard.setConnected(connected);
     }
+  }
+
+  public void setConnectedDevice(Device device) {
+    connectedDeviceBox.getChildren().clear();
+
+    if (device == null) {
+      connectedDeviceBox.setManaged(false);
+      connectedDeviceBox.setVisible(false);
+
+      return;
+    }
+
+    connectedDeviceBox.getChildren().add(new ConnectedDeviceCard(device, onSelectDevice, onDisconnect));
+    connectedDeviceBox.setManaged(true);
+    connectedDeviceBox.setVisible(true);
   }
 
   private ScrollPane createScrollPane() {

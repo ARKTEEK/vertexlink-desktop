@@ -12,6 +12,7 @@ import vertexlink.network.server.ClientHandler;
 public class DeviceState {
   private final Map<String, Device> discoveredDevices = new LinkedHashMap<>();
   private final Map<String, ClientHandler> pendingClients = new LinkedHashMap<>();
+  private final Map<String, ClientHandler> connectedClients = new LinkedHashMap<>();
 
   public Device upsertDevice(String address, String name, String clientId) {
     Device device = discoveredDevices.get(address);
@@ -47,8 +48,45 @@ public class DeviceState {
     return discoveredDevices.get(address);
   }
 
+  public Device findByClientId(String clientId) {
+    if (clientId == null) {
+      return null;
+    }
+
+    for (Device device : discoveredDevices.values()) {
+      if (clientId.equals(device.getClientId())) {
+        return device;
+      }
+    }
+
+    return null;
+  }
+
+  public void setConnectedClient(String deviceId, ClientHandler client) {
+    connectedClients.put(deviceId, client);
+  }
+
+  public ClientHandler getConnectedClient(String deviceId) {
+    return connectedClients.get(deviceId);
+  }
+
+  public void removeConnectedClient(String deviceId) {
+    connectedClients.remove(deviceId);
+  }
+
+  public String findConnectedDeviceId(ClientHandler client) {
+    for (Map.Entry<String, ClientHandler> entry : connectedClients.entrySet()) {
+      if (entry.getValue() == client) {
+        return entry.getKey();
+      }
+    }
+
+    return null;
+  }
+
   public void clear() {
     discoveredDevices.clear();
     pendingClients.clear();
+    connectedClients.clear();
   }
 }

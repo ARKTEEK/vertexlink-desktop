@@ -48,6 +48,7 @@ public class ClientHandler extends Thread {
     } finally {
       close();
 
+      manager.handleDisconnect(this);
       server.removeClient(this);
     }
   }

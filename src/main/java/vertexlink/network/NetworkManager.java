@@ -85,4 +85,10 @@ public class NetworkManager {
       }
     }
   }
+
+  public void handleDisconnect(ClientHandler client) {
+    if (pairingListener != null) {
+      pairingListener.onDisconnect(client);
+    }
+  }
 }

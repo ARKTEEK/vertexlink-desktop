@@ -6,6 +6,11 @@ import vertexlink.network.server.ClientHandler;
 public interface DashboardEventListener {
   void onPairRequest(String deviceName, String addressKey, String calculatedPin, ClientHandler client, String deviceId);
 
+  void onConnectionConflict(Device connectedDevice, String incomingDeviceName, String addressKey, String deviceId,
+      ClientHandler client);
+
+  void onConnectedDeviceChanged(Device device);
+
   void onDeviceListUpdated(java.util.List<Device> devices);
 
   void onDataReceived(String data, String hostAddress);

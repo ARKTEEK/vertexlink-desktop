@@ -1,5 +1,6 @@
 package vertexlink.pairing;
 
+import vertexlink.device.Device;
 import vertexlink.device.DeviceDirectory;
 import vertexlink.listener.DashboardEventListener;
 import vertexlink.network.protocol.ProtocolMessenger;
@@ -42,16 +43,45 @@ public class PairingCoordinator {
   public void onAuth(String deviceId, String token, ClientHandler client) {
     boolean ok = pairingService.verifyAuth(deviceId, token);
 
-    messenger.sendAuthResult(client, ok, ok ? null : "Unknown device or invalid token");
+    if (!ok) {
+      messenger.sendAuthResult(client, false, "Unknown device or invalid token");
+      client.close();
 
-    if (ok) {
-      String addressKey = client.getAddress().getHostAddress();
-      String deviceName = pairingService.findPaired(deviceId).get().deviceName();
+      return;
+    }
 
-      devices.markPaired(addressKey, deviceName, deviceId);
+    String addressKey = client.getAddress().getHostAddress();
+    String deviceName = pairingService.findPaired(deviceId).get().deviceName();
 
-      notifyDevicesChanged();
+    Device existingConnected = devices.getConnectedDevice();
+
+    if (existingConnected == null || deviceId.equals(existingConnected.getClientId())) {
+      completeConnection(client, addressKey, deviceId, deviceName);
+
+      return;
+    }
+
+    devices.addPendingClient(addressKey, client);
+
+    if (eventListener != null) {
+      eventListener.onConnectionConflict(existingConnected, deviceName, addressKey, deviceId, client);
+    }
+  }
+
+  public void resolveConnectionConflict(ClientHandler client, String addressKey, String deviceId, String deviceName,
+      boolean keepNew) {
+    devices.removePendingClient(addressKey);
+
+    if (keepNew) {
+      Device previouslyConnected = devices.getConnectedDevice();
+
+      if (previouslyConnected != null) {
+        devices.disconnectClient(previouslyConnected.getClientId());
+      }
+
+      completeConnection(client, addressKey, deviceId, deviceName);
     } else {
+      messenger.sendAuthResult(client, false, "Another device is already connected");
       client.close();
     }
   }
@@ -75,9 +105,45 @@ public class PairingCoordinator {
     }
   }
 
+  public void onDisconnect(ClientHandler client) {
+    Device disconnected = devices.disconnectClientHandler(client);
+
+    if (disconnected != null) {
+      notifyDevicesChanged();
+      notifyConnectedDeviceChanged();
+    }
+  }
+
+  public void disconnectConnectedDevice() {
+    Device connected = devices.getConnectedDevice();
+
+    if (connected == null) {
+      return;
+    }
+
+    devices.disconnectClient(connected.getClientId());
+
+    notifyDevicesChanged();
+    notifyConnectedDeviceChanged();
+  }
+
+  private void completeConnection(ClientHandler client, String addressKey, String deviceId, String deviceName) {
+    messenger.sendAuthResult(client, true, null);
+    devices.markConnected(addressKey, deviceName, deviceId, client);
+
+    notifyDevicesChanged();
+    notifyConnectedDeviceChanged();
+  }
+
   private void notifyDevicesChanged() {
     if (eventListener != null) {
       eventListener.onDeviceListUpdated(devices.getDevicesList());
+    }
+  }
+
+  private void notifyConnectedDeviceChanged() {
+    if (eventListener != null) {
+      eventListener.onConnectedDeviceChanged(devices.getConnectedDevice());
     }
   }
 }
