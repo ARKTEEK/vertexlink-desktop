@@ -18,19 +18,27 @@ import vertexlink.ui.resources.global.IconPaths;
 
 public class ConnectedDeviceCard extends VBox {
 
-  public ConnectedDeviceCard(Device device, Consumer<Device> onSelect, Runnable onDisconnect) {
-    super(8);
-    getStyleClass().add("header-card");
+  public ConnectedDeviceCard(
+      Device device,
+      Consumer<Device> onSelect,
+      Runnable onDisconnect) {
 
-    StackPane avatar = IconFactory.createPhoneIcon(device.getStatus(), 28, 18, false);
-    avatar.getStyleClass().add("header-avatar");
+    super(8);
+    getStyleClass().add("connected-device-card");
+
+    StackPane avatar = new StackPane();
+    avatar.getStyleClass().add("connected-device-avatar");
+    avatar.setMinSize(36, 36);
+    avatar.setPrefSize(36, 36);
+    avatar.setMaxSize(36, 36);
+
+    avatar.getChildren().add(
+        IconFactory.createIcon(IconPaths.PHONE, "phone-icon"));
 
     Label nameLabel = new Label(device.getName());
-    nameLabel.getStyleClass().add("device-title");
+    nameLabel.getStyleClass().add("connected-device-name");
 
-    Label connectedBadge = ComponentFactory.createStatusBadge("Connected", true);
-
-    VBox textBox = new VBox(2, nameLabel, connectedBadge);
+    VBox textBox = new VBox(2, nameLabel);
     textBox.setAlignment(Pos.CENTER_LEFT);
 
     HBox deviceDetails = new HBox(10, avatar, textBox);
@@ -39,7 +47,10 @@ public class ConnectedDeviceCard extends VBox {
     Region spacer = new Region();
     HBox.setHgrow(spacer, Priority.ALWAYS);
 
-    Button disconnectBtn = ComponentFactory.createIconButton(IconPaths.UNPAIR, "header-action-btn disconnect-btn");
+    Button disconnectBtn = ComponentFactory.createIconButton(
+        IconPaths.CLOSE,
+        "disconnect-action-btn");
+
     disconnectBtn.setOnAction(e -> {
       e.consume();
 
@@ -47,9 +58,17 @@ public class ConnectedDeviceCard extends VBox {
         onDisconnect.run();
       }
     });
-    disconnectBtn.addEventFilter(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);
 
-    HBox topRow = new HBox(8, deviceDetails, spacer, disconnectBtn);
+    disconnectBtn.addEventFilter(
+        MouseEvent.MOUSE_CLICKED,
+        MouseEvent::consume);
+
+    HBox topRow = new HBox(
+        8,
+        deviceDetails,
+        spacer,
+        disconnectBtn);
+
     topRow.setAlignment(Pos.CENTER_LEFT);
 
     getChildren().add(topRow);

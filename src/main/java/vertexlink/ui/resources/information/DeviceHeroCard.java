@@ -10,15 +10,13 @@ import vertexlink.device.Device;
 import vertexlink.enums.DeviceStatus;
 import vertexlink.ui.resources.global.ComponentFactory;
 import vertexlink.ui.resources.global.IconFactory;
+import vertexlink.ui.resources.global.IconPaths;
 
 public class DeviceHeroCard extends VBox {
 
   public DeviceHeroCard(Device device) {
     getStyleClass().add("hero-card");
     setPadding(new Insets(16));
-
-    StackPane icon = IconFactory.createPhoneIcon(device.getStatus(), 30, 46, false);
-    icon.getStyleClass().add("hero-avatar");
 
     Label nameLabel = new Label(device.getName());
     nameLabel.getStyleClass().add("hero-device-name");
@@ -39,7 +37,16 @@ public class DeviceHeroCard extends VBox {
     VBox textBox = new VBox(8, nameLabel, badgeRow);
     textBox.setAlignment(Pos.CENTER_LEFT);
 
-    HBox content = new HBox(14, icon, textBox);
+    StackPane avatar = new StackPane();
+    avatar.getStyleClass().add("hero-device-avatar");
+    avatar.setMinSize(64, 64);
+    avatar.setPrefSize(64, 64);
+    avatar.setMaxSize(64, 64);
+
+    avatar.getChildren().add(
+        IconFactory.createIcon(IconPaths.PHONE, "phone-icon-big"));
+
+    HBox content = new HBox(14, avatar, textBox);
     content.setAlignment(Pos.CENTER_LEFT);
 
     getChildren().add(content);

@@ -69,7 +69,7 @@ public class DevicesListPanel extends VBox {
     rowsBox.setAlignment(Pos.TOP_LEFT);
 
     if (!paired.isEmpty()) {
-      rowsBox.getChildren().add(new DeviceSectionHeader("Paired"));
+      rowsBox.getChildren().add(new DeviceSectionHeader("PAIRED"));
 
       for (Device device : paired) {
         rowsBox.getChildren().add(new DeviceRow(device, onSelectDevice, onUnpairDevice));
@@ -77,7 +77,7 @@ public class DevicesListPanel extends VBox {
     }
 
     if (!unpaired.isEmpty()) {
-      rowsBox.getChildren().add(new DeviceSectionHeader("Not Paired"));
+      rowsBox.getChildren().add(new DeviceSectionHeader("AVAILABLE"));
 
       for (Device device : unpaired) {
         rowsBox.getChildren().add(new DeviceRow(device, onSelectDevice, onUnpairDevice));
@@ -101,6 +101,7 @@ public class DevicesListPanel extends VBox {
       return;
     }
 
+    connectedDeviceBox.getChildren().add(new DeviceSectionHeader("CONNECTED"));
     connectedDeviceBox.getChildren().add(new ConnectedDeviceCard(device, onSelectDevice, onDisconnect));
     connectedDeviceBox.setManaged(true);
     connectedDeviceBox.setVisible(true);

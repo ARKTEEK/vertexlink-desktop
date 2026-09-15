@@ -10,8 +10,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import vertexlink.enums.DeviceStatus;
 import vertexlink.ui.resources.global.ComponentFactory;
 import vertexlink.ui.resources.global.IconFactory;
 import vertexlink.ui.resources.global.IconPaths;
@@ -26,15 +24,13 @@ public class PairingBanner extends HBox {
   }
 
   public void showRequest(String deviceName, String address, String pin, BiConsumer<String, Boolean> onResponse) {
-    StackPane phoneIcon = IconFactory.createPhoneIcon(DeviceStatus.ONLINE, 20, 32);
-
     Label nameLabel = new Label(deviceName);
     nameLabel.getStyleClass().add("pairing-banner-title");
 
     Label pinLabel = new Label("PIN: " + pin);
     pinLabel.getStyleClass().add("pairing-banner-pin");
 
-    HBox infoBox = new HBox(10, phoneIcon, nameLabel, pinLabel);
+    HBox infoBox = new HBox(10, IconFactory.createIcon(IconPaths.PHONE, "phone-icon"), nameLabel, pinLabel);
     infoBox.setAlignment(Pos.CENTER_LEFT);
 
     Region spacer = new Region();
@@ -70,15 +66,13 @@ public class PairingBanner extends HBox {
 
   public void showConnectionConflict(String connectedDeviceName, String incomingDeviceName,
       Consumer<Boolean> onResolved) {
-    StackPane phoneIcon = IconFactory.createPhoneIcon(DeviceStatus.ONLINE, 20, 32);
-
     Label titleLabel = new Label(incomingDeviceName + " wants to connect");
     titleLabel.getStyleClass().add("pairing-banner-title");
 
     Label detailLabel = new Label(connectedDeviceName + " is currently connected");
     detailLabel.getStyleClass().add("pairing-banner-pin");
 
-    HBox infoBox = new HBox(10, phoneIcon, titleLabel, detailLabel);
+    HBox infoBox = new HBox(10, IconFactory.createIcon(IconPaths.PHONE, "phone-icon"), titleLabel, detailLabel);
     infoBox.setAlignment(Pos.CENTER_LEFT);
 
     Region spacer = new Region();
@@ -94,8 +88,7 @@ public class PairingBanner extends HBox {
       hide();
     });
 
-    Button keepBtn = ComponentFactory.createIconButton(IconPaths.CLOSE,
-        "pairing-banner-button pairing-banner-decline");
+    Button keepBtn = ComponentFactory.createIconButton(IconPaths.CLOSE, "pairing-banner-button pairing-banner-decline");
     keepBtn.setTooltip(new Tooltip("Keep " + connectedDeviceName));
     keepBtn.setOnAction(e -> {
       if (onResolved != null) {

@@ -11,7 +11,10 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import vertexlink.device.Device;
+import vertexlink.enums.DeviceStatus;
 import vertexlink.ui.resources.global.ComponentFactory;
 import vertexlink.ui.resources.global.IconFactory;
 import vertexlink.ui.resources.global.IconPaths;
@@ -28,11 +31,30 @@ public class DeviceRow extends HBox {
     setPadding(new Insets(ROW_PADDING));
     getStyleClass().add("device-row");
 
-    getChildren().add(IconFactory.createPhoneIcon(device.getStatus()));
+    StackPane avatar = new StackPane();
+    avatar.getStyleClass().add("header-avatar");
+    avatar.setMinSize(40, 40);
+    avatar.setPrefSize(40, 40);
+    avatar.setMaxSize(40, 40);
+    avatar.getChildren().add(IconFactory.createIcon(IconPaths.PHONE, "phone-icon"));
+    getChildren().add(avatar);
+
+    VBox textContainer = new VBox(2);
+    textContainer.setAlignment(Pos.CENTER_LEFT);
 
     Label nameLabel = new Label(device.getName());
     nameLabel.getStyleClass().add("device-name");
-    getChildren().add(nameLabel);
+    textContainer.getChildren().add(nameLabel);
+
+    boolean isOnline = false;
+    if (device.getStatus() == DeviceStatus.ONLINE) {
+      isOnline = true;
+    }
+
+    Label statusPill = ComponentFactory.createStatusBadge(isOnline ? "Online" : "Offline", isOnline);
+    textContainer.getChildren().add(statusPill);
+
+    getChildren().add(textContainer);
 
     if (device.isPaired()) {
       Region spacer = new Region();
@@ -52,7 +74,9 @@ public class DeviceRow extends HBox {
       getChildren().add(unpairBtn);
     }
 
-    setOnMouseClicked(e -> onSelect.accept(device));
+    setOnMouseClicked(e -> {
+      onSelect.accept(device);
+    });
   }
 
   public Device getDevice() {

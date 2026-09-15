@@ -11,7 +11,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import vertexlink.enums.DeviceStatus;
 import vertexlink.ui.resources.global.ComponentFactory;
 import vertexlink.ui.resources.global.IconFactory;
 import vertexlink.ui.resources.global.IconPaths;
@@ -32,9 +31,6 @@ public class DeviceHeaderCard extends VBox {
     super(8);
     getStyleClass().add("header-card");
 
-    StackPane avatar = IconFactory.createDesktopIcon(DeviceStatus.OFFLINE, 28, 18, false);
-    avatar.getStyleClass().add("header-avatar");
-
     Label nameLabel = new Label(deviceName);
     nameLabel.getStyleClass().add("device-title");
 
@@ -43,6 +39,15 @@ public class DeviceHeaderCard extends VBox {
 
     VBox textBox = new VBox(2, nameLabel, statusLabel);
     textBox.setAlignment(Pos.CENTER_LEFT);
+
+    StackPane avatar = new StackPane();
+    avatar.getStyleClass().add("header-avatar");
+    avatar.setMinSize(36, 36);
+    avatar.setPrefSize(36, 36);
+    avatar.setMaxSize(36, 36);
+
+    avatar.getChildren().add(
+        IconFactory.createIcon(IconPaths.DESKTOP, "desktop-icon"));
 
     HBox deviceDetails = new HBox(10, avatar, textBox);
     deviceDetails.setAlignment(Pos.CENTER_LEFT);
@@ -93,7 +98,7 @@ public class DeviceHeaderCard extends VBox {
   }
 
   public void setConnected(boolean connected) {
-    statusLabel.setText(connected ? "Online" : "Offline");
+    statusLabel.setText(connected ? "Discoverable" : "Hidden");
     statusLabel.getStyleClass().removeAll("status-on", "status-off");
     statusLabel.getStyleClass().add(connected ? "status-on" : "status-off");
 

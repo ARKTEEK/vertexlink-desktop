@@ -2,6 +2,7 @@
 
 @font-face {
   font-family: "Plus Jakarta Sans";
+  font-weight: 600;
   src: url("fonts/PlusJakartaSans-SemiBold.ttf");
 }
 
@@ -98,21 +99,6 @@
   -fx-padding: 0 8 0 10;
 }
 
-.title-bar-badge {
-  -fx-background-color: -accent-primary;
-  -fx-border-color: transparent;
-  -fx-background-radius: 6px;
-  -fx-text-fill: -text-on-accent;
-  -fx-font-family: "Plus Jakarta Sans";
-  -fx-font-size: 10px;
-  -fx-font-weight: bold;
-  -fx-min-width: 20px;
-  -fx-min-height: 20px;
-  -fx-max-width: 20px;
-  -fx-max-height: 20px;
-  -fx-alignment: center;
-}
-
 .title-bar-label {
   -fx-font-family: "Plus Jakarta Sans";
   -fx-font-size: 12px;
@@ -140,14 +126,33 @@
   -fx-fill: #ffffff;
 }
 
-/* Connected Device Panel */
+/* Connected Device */
 
 .connected-device-card {
   -fx-background-color: -bg-surface-mid;
   -fx-background-radius: 14px;
-  -fx-border-color: transparent;
+  -fx-border-color: -border-subtle;
   -fx-border-radius: 14px;
-  -fx-padding: 12px 14px;
+  -fx-padding: 9px 10px;
+  -fx-cursor: hand;
+}
+
+.connected-device-card:hover {
+  -fx-background-color: #ffffff;
+  -fx-border-color: -border-strong;
+}
+
+.connected-device-avatar {
+  -fx-background-color: -bg-surface-high;
+  -fx-background-radius: 9px;
+  -fx-padding: 7px;
+}
+
+.connected-device-name {
+  -fx-font-family: "Plus Jakarta Sans";
+  -fx-font-size: 12px;
+  -fx-font-weight: bold;
+  -fx-text-fill: -text-primary;
 }
 
 /* Devices Panel */
@@ -176,12 +181,15 @@
 .header-action-btn {
   -fx-background-color: -bg-surface-high;
   -fx-border-color: -border-subtle;
-  -fx-border-radius: 8px;
-  -fx-background-radius: 8px;
-  -fx-min-width: 32px;
-  -fx-min-height: 32px;
-  -fx-max-width: 32px;
-  -fx-max-height: 32px;
+  -fx-border-radius: 10px;
+  -fx-background-radius: 10px;
+  -fx-min-width: 40px;
+  -fx-min-height: 40px;
+  -fx-pref-width: 40px;
+  -fx-pref-height: 40px;
+  -fx-max-width: 40px;
+  -fx-max-height: 40px;
+  -fx-padding: 0;
   -fx-cursor: hand;
 }
 
@@ -207,13 +215,6 @@
   -fx-font-size: 13.5px;
   -fx-font-weight: bold;
   -fx-text-fill: -text-primary;
-}
-
-.devices-toolbar-label {
-  -fx-font-family: "Plus Jakarta Sans";
-  -fx-font-size: 11px;
-  -fx-font-weight: bold;
-  -fx-text-fill: -text-muted;
 }
 
 .devices-section-container {
@@ -303,22 +304,29 @@
 }
 
 .device-name {
-  -fx-font-size: 13px;
+  -fx-font-size: 12px;
   -fx-font-weight: 500;
   -fx-text-fill: -text-primary;
 }
 
 .unpair-button {
-  -fx-background-color: transparent;
-  -fx-border-color: -danger;
-  -fx-border-width: 1px;
+  -fx-background-color: -bg-surface-high;
+  -fx-border-color: -border-subtle;
   -fx-border-radius: 8px;
   -fx-background-radius: 8px;
-  -fx-text-fill: -danger;
-  -fx-font-size: 11px;
-  -fx-padding: 4px 10px;
+  -fx-min-width: 28px;
+  -fx-min-height: 28px;
+  -fx-pref-width: 28px;
+  -fx-pref-height: 28px;
+  -fx-max-width: 28px;
+  -fx-max-height: 28px;
+  -fx-padding: 0;
   -fx-cursor: hand;
   -fx-opacity: 0;
+}
+
+.unpair-button .icon {
+  -fx-fill: -text-secondary;
 }
 
 .device-row:hover .unpair-button {
@@ -326,18 +334,18 @@
 }
 
 .unpair-button:hover {
-  -fx-background-color: -danger;
-  -fx-text-fill: #ffffff;
+  -fx-background-color: -bg-surface-hover;
+}
+
+.unpair-button:hover .icon {
+  -fx-fill: -danger;
 }
 
 .unpair-button:pressed {
-  -fx-background-color: derive(-danger, -20%);
-  -fx-text-fill: #ffffff;
+  -fx-background-color: -bg-surface-high;
 }
 
 .unpair-button:focused {
-  -fx-background-color: derive(-danger, 85%);
-  -fx-border-color: -danger;
   -fx-opacity: 1;
 }
 
@@ -351,24 +359,35 @@
 }
 
 .disconnect-action-btn {
-  -fx-background-color: transparent;
-  -fx-border-color: -danger;
+  -fx-background-color: rgba(255, 255, 255, 0.72);
+  -fx-border-color: rgba(239, 68, 68, 0.20);
   -fx-border-radius: 8px;
   -fx-background-radius: 8px;
-  -fx-min-width: 32px;
-  -fx-min-height: 32px;
-  -fx-max-width: 32px;
-  -fx-max-height: 32px;
+  -fx-min-width: 30px;
+  -fx-min-height: 30px;
+  -fx-pref-width: 30px;
+  -fx-pref-height: 30px;
+  -fx-max-width: 30px;
+  -fx-max-height: 30px;
+  -fx-padding: 0;
   -fx-cursor: hand;
 }
 
-.disconnect-btn:hover {
-  -fx-background-color: -danger;
+.disconnect-action-btn .icon {
+  -fx-fill: -text-muted;
+}
+
+.disconnect-action-btn:hover {
+  -fx-background-color: rgba(239, 68, 68, 0.10);
   -fx-border-color: -danger;
 }
 
-.disconnect-btn:hover .icon {
-  -fx-fill: #ffffff;
+.disconnect-action-btn:hover .icon {
+  -fx-fill: -danger;
+}
+
+.disconnect-action-btn:pressed {
+  -fx-background-color: rgba(239, 68, 68, 0.16);
 }
 
 /* Information Panel */
@@ -405,22 +424,16 @@
   -fx-effect: dropshadow(gaussian, rgba(124, 58, 237, 0.08), 10, 0, 0, 3);
 }
 
-.hero-avatar {
+.hero-device-avatar {
   -fx-background-color: -bg-surface-high;
-  -fx-background-radius: 10px;
-  -fx-padding: 8px 10px;
+  -fx-background-radius: 16px;
+  -fx-padding: 12px;
 }
 
-.hero-avatar .phone-icon-body {
-  -fx-stroke: -accent-primary;
-}
-
-.hero-avatar .phone-icon-button {
-  -fx-fill: -accent-secondary;
-}
-
-.hero-avatar .phone-icon-screen {
-  -fx-fill: -bg-surface-low;
+.hero-device-avatar .phone-icon-big {
+  -fx-fill: -accent-primary;
+  -fx-scale-x: 1.8;
+  -fx-scale-y: 1.8;
 }
 
 .hero-device-name {
@@ -428,16 +441,6 @@
   -fx-font-size: 14px;
   -fx-font-weight: bold;
   -fx-text-fill: -text-primary;
-}
-
-.hero-status-pill {
-  -fx-background-color: transparent;
-  -fx-border-color: transparent;
-  -fx-padding: 0;
-}
-
-.hero-status-pill .status-pill-label {
-  -fx-text-fill: #ffffff;
 }
 
 .info-section-label {
@@ -505,28 +508,15 @@
   -fx-background-color: rgba(154, 146, 172, 0.15);
 }
 
-.status-pill {
-  -fx-background-color: -bg-surface-high;
-  -fx-background-radius: 999px;
-  -fx-border-color: -border-subtle;
-  -fx-border-radius: 999px;
-}
-
-.status-pill-label {
-  -fx-font-size: 11px;
-  -fx-font-weight: 500;
-  -fx-text-fill: -text-secondary;
-}
-
 .power-toggle {
   -fx-background-color: -bg-surface-high;
   -fx-background-radius: 10px;
   -fx-border-color: -border-subtle;
   -fx-border-radius: 10px;
-  -fx-min-width: 34px;
-  -fx-min-height: 34px;
-  -fx-max-width: 34px;
-  -fx-max-height: 34px;
+  -fx-min-width: 40px;
+  -fx-min-height: 40px;
+  -fx-max-width: 40px;
+  -fx-max-height: 40px;
   -fx-cursor: hand;
 }
 
@@ -540,7 +530,7 @@
 
 .power-toggle.active {
   -fx-background-color: -accent-primary;
-  -fx-border-color: -accent-primary;
+  -fx-border-color: transparent;
 }
 
 .power-toggle.active .power-icon {
@@ -615,70 +605,28 @@
   -fx-fill: #ffffff;
 }
 
-.toggle-track {
-  -fx-stroke: -border-subtle;
-  -fx-fill: -bg-surface-mid;
-}
-
-.toggle-thumb {
-  -fx-fill: -text-secondary;
-}
-
-.toggle-switch:selected .toggle-track {
-  -fx-fill: -accent-primary;
-  -fx-stroke: transparent;
-}
-
-.toggle-switch:selected .toggle-thumb {
-  -fx-fill: #ffffff;
-}
-
 /* Icons & SVG Vectors */
 
 .icon {
   -fx-fill: -text-secondary;
 }
 
-.desktop-icon-body {
-  -fx-fill: transparent;
-  -fx-stroke: -accent-primary;
-  -fx-stroke-width: 1.5;
-}
-
-.desktop-icon-screen {
-  -fx-fill: -bg-surface-high;
-}
-
-.desktop-icon-stand {
+.desktop-icon {
   -fx-fill: -accent-primary;
+  -fx-scale-x: 0.95;
+  -fx-scale-y: 0.95;
 }
 
-.desktop-icon-base {
+.phone-icon {
   -fx-fill: -accent-primary;
+  -fx-scale-x: 0.95;
+  -fx-scale-y: 0.95;
 }
 
-.desktop-status-dot {
-  -fx-stroke: -bg-surface-low;
-  -fx-stroke-width: 2;
-}
-
-.phone-icon-body {
-  -fx-fill: transparent;
-  -fx-stroke: -accent-primary;
-  -fx-stroke-width: 1.5;
-}
-
-.phone-icon-screen {
-  -fx-fill: -bg-surface-high;
-}
-
-.phone-icon-button {
-  -fx-fill: -accent-secondary;
-}
-
-.phone-status-dot {
-  -fx-stroke: -bg-surface-low;
-  -fx-stroke-width: 2;
+.phone-icon-big {
+  -fx-fill: -accent-primary;
+  -fx-scale-x: 2.25;
+  -fx-scale-y: 2.25;
 }
 
 /* Banners & Notifications */
@@ -692,7 +640,7 @@
   -fx-effect: dropshadow(gaussian, rgba(124, 58, 237, 0.08), 10, 0, 0, 3);
 }
 
-.pairing-banner-title {
+e .pairing-banner-title {
   -fx-font-family: "Plus Jakarta Sans";
   -fx-font-size: 13px;
   -fx-font-weight: bold;

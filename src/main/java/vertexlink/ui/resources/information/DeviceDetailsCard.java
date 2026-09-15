@@ -10,16 +10,15 @@ public class DeviceDetailsCard extends VBox {
   public DeviceDetailsCard(Device device) {
     super(4);
 
-    Label sectionLabel = new Label("Connection Details");
+    Label sectionLabel = new Label("CONNECTION DETAILS");
     sectionLabel.getStyleClass().add("info-section-label");
 
     VBox card = new VBox();
     card.getStyleClass().add("info-card");
     card.getChildren().addAll(
-        ComponentFactory.createInfoRow("Client ID", device.getClientId()),
-        ComponentFactory.createInfoRow("IPv4 Address", device.getIpv4Address()),
-        ComponentFactory.createInfoRow("IPv6 Address", device.getIpv6Address()),
-        ComponentFactory.createInfoRow("App Version", device.getAppVersion()));
+        ComponentFactory.createInfoRow("CLIENT ID", device.getClientId()),
+        ComponentFactory.createInfoRow("IPV4 ADDRESS", device.getIpv4Address()),
+        ComponentFactory.createInfoRow("APP VERSION", device.getAppVersion()));
 
     if (!card.getChildren().isEmpty()) {
       card.getChildren().get(0).getStyleClass().add("info-row-first");

@@ -19,9 +19,6 @@ public class TitleBar extends HBox {
     setPadding(new Insets(0, 6, 0, 10));
     setSpacing(6);
 
-    Label badge = new Label("V");
-    badge.getStyleClass().add("title-bar-badge");
-
     Label titleLabel = new Label(title);
     titleLabel.getStyleClass().add("title-bar-label");
 
@@ -34,7 +31,7 @@ public class TitleBar extends HBox {
     Button closeBtn = ComponentFactory.createIconButton(IconPaths.CLOSE, "title-bar-button close-window");
     closeBtn.setOnAction(e -> stage.close());
 
-    getChildren().addAll(badge, titleLabel, spacer, minimizeBtn, closeBtn);
+    getChildren().addAll(titleLabel, spacer, minimizeBtn, closeBtn);
 
     setOnMousePressed(e -> {
       dragOffsetX = e.getSceneX();
