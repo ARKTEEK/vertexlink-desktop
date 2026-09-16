@@ -16,11 +16,17 @@ import vertexlink.ui.resources.global.IconFactory;
 import vertexlink.ui.resources.global.IconPaths;
 
 public class DeviceHeaderCard extends VBox {
+  private static final String STATUS_ON_CLASS = "status-on";
+  private static final String STATUS_OFF_CLASS = "status-off";
+  private static final String STATUS_SHUTTING_DOWN_CLASS = "status-shutting-down";
+
   private final Label statusLabel = new Label();
   private final TextField searchField = new TextField();
   private final Button powerBtn;
   private final Button searchToggleBtn;
+  private final Button refreshBtn;
   private boolean searchOpen = false;
+  private boolean lastConnected = false;
 
   public DeviceHeaderCard(
       String deviceName,
@@ -35,7 +41,6 @@ public class DeviceHeaderCard extends VBox {
     nameLabel.getStyleClass().add("device-title");
 
     statusLabel.getStyleClass().add("status-badge");
-    setConnected(connected);
 
     VBox textBox = new VBox(2, nameLabel, statusLabel);
     textBox.setAlignment(Pos.CENTER_LEFT);
@@ -67,12 +72,14 @@ public class DeviceHeaderCard extends VBox {
       toggleSearch();
     });
 
-    Button refreshBtn = ComponentFactory.createIconButton(IconPaths.REFRESH, "header-action-btn");
+    refreshBtn = ComponentFactory.createIconButton(IconPaths.REFRESH, "header-action-btn");
     refreshBtn.setOnAction(e -> {
       if (onRefresh != null) {
         onRefresh.run();
       }
     });
+
+    setConnected(connected);
 
     HBox actions = new HBox(6, searchToggleBtn, refreshBtn, powerBtn);
     actions.setAlignment(Pos.CENTER_RIGHT);
@@ -98,9 +105,14 @@ public class DeviceHeaderCard extends VBox {
   }
 
   public void setConnected(boolean connected) {
+    lastConnected = connected;
+
     statusLabel.setText(connected ? "Discoverable" : "Hidden");
-    statusLabel.getStyleClass().removeAll("status-on", "status-off");
-    statusLabel.getStyleClass().add(connected ? "status-on" : "status-off");
+    statusLabel.getStyleClass().removeAll(STATUS_ON_CLASS, STATUS_OFF_CLASS, STATUS_SHUTTING_DOWN_CLASS);
+    statusLabel.getStyleClass().add(connected ? STATUS_ON_CLASS : STATUS_OFF_CLASS);
+
+    powerBtn.setDisable(false);
+    refreshBtn.setDisable(false);
 
     if (powerBtn != null) {
       if (connected) {
@@ -110,6 +122,22 @@ public class DeviceHeaderCard extends VBox {
       } else {
         powerBtn.getStyleClass().remove("active");
       }
+    }
+  }
+
+  public void setShuttingDown(boolean shuttingDown) {
+    if (shuttingDown) {
+      statusLabel.setText("Shutting down...");
+      statusLabel.getStyleClass().removeAll(STATUS_ON_CLASS, STATUS_OFF_CLASS);
+
+      if (!statusLabel.getStyleClass().contains(STATUS_SHUTTING_DOWN_CLASS)) {
+        statusLabel.getStyleClass().add(STATUS_SHUTTING_DOWN_CLASS);
+      }
+
+      powerBtn.setDisable(true);
+      refreshBtn.setDisable(true);
+    } else {
+      setConnected(lastConnected);
     }
   }
 

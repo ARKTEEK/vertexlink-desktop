@@ -1,7 +1,11 @@
 package vertexlink.controller;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
+import javafx.application.Platform;
 import vertexlink.device.Device;
 import vertexlink.device.DeviceDirectory;
 import vertexlink.device.DeviceIdentity;
@@ -18,7 +22,7 @@ import vertexlink.store.PairedDeviceStore;
 
 public class DashboardController {
   private static final int TCP_PORT = 28401;
-  private static final String DESKTOP_NAME = "VertexLink Desktop";
+  private static final String DESKTOP_NAME = "DesktopServer";
 
   private final DeviceIdentity identity = new DeviceIdentity();
   private final DeviceBroadcaster broadcaster = new DeviceBroadcaster();
@@ -29,8 +33,18 @@ public class DashboardController {
   private final PairingCoordinator pairing;
   private final DeviceScanner scanner;
 
-  private boolean connected = false;
+  private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor(r -> {
+    Thread t = new Thread(r, "network-lifecycle");
+    t.setDaemon(true);
+
+    return t;
+  });
+
+  private volatile boolean connected = false;
+  private volatile boolean transitioning = false;
   private DashboardEventListener eventListener;
+  private Consumer<Boolean> connectionStateListener;
+  private Consumer<Boolean> connectionTransitionListener;
 
   public DashboardController() {
     this.pairing = new PairingCoordinator(pairingService, messenger, devices, identity.getId(), DESKTOP_NAME);
@@ -45,11 +59,23 @@ public class DashboardController {
     this.pairing.setEventListener(listener);
   }
 
+  public void setConnectionStateListener(Consumer<Boolean> listener) {
+    this.connectionStateListener = listener;
+  }
+
+  public void setConnectionTransitionListener(Consumer<Boolean> listener) {
+    this.connectionTransitionListener = listener;
+  }
+
   private void setupNetworkListeners() {
     networkManager.setPairingListener(new NetworkManager.PairingListener() {
 
       @Override
-      public void onPairRequest(String deviceId, String deviceName, String publicKey, ClientHandler client) {
+      public void onPairRequest(
+          String deviceId,
+          String deviceName,
+          String publicKey,
+          ClientHandler client) {
         pairing.onPairRequest(deviceId, deviceName, publicKey, client);
       }
 
@@ -67,32 +93,83 @@ public class DashboardController {
   }
 
   public void toggleConnection() {
-    connected = !connected;
+    if (transitioning) {
+      return;
+    }
 
-    if (connected) {
-      broadcaster.start("DesktopServer", TCP_PORT, identity.getId());
-      scanner.start();
-      networkManager.start();
+    transitioning = true;
+
+    boolean goingOnline = !connected;
+
+    notifyTransitionStarted(goingOnline);
+
+    networkExecutor.submit(() -> {
+      try {
+        if (goingOnline) {
+          broadcaster.start("DesktopServer", TCP_PORT, identity.getId());
+          scanner.start();
+          networkManager.start();
+        } else {
+          scanner.stop();
+          broadcaster.stop();
+          networkManager.stop();
+          devices.clear();
+        }
+
+        connected = goingOnline;
+      } catch (Exception e) {
+        System.err.println("[Dashboard] Failed to toggle connection: " + e.getMessage());
+
+        connected = !goingOnline;
+      } finally {
+        transitioning = false;
+
+        Platform.runLater(() -> {
+          if (connectionStateListener != null) {
+            connectionStateListener.accept(connected);
+          }
+
+          if (!connected) {
+            notifyDevicesChanged();
+          }
+        });
+      }
+    });
+  }
+
+  private void notifyTransitionStarted(boolean goingOnline) {
+    if (connectionTransitionListener == null) {
+      return;
+    }
+
+    if (Platform.isFxApplicationThread()) {
+      connectionTransitionListener.accept(goingOnline);
     } else {
-      scanner.stop();
-      broadcaster.stop();
-      networkManager.stop();
-      devices.clear();
-      notifyDevicesChanged();
+      Platform.runLater(() -> connectionTransitionListener.accept(goingOnline));
     }
   }
 
   public void refreshDevices() {
-    scanner.stop();
-    scanner.start();
+    networkExecutor.submit(() -> {
+      scanner.stop();
+      scanner.start();
+    });
   }
 
-  public void handlePairingResponse(ClientHandler client, String addressKey, String deviceId, String deviceName,
+  public void handlePairingResponse(
+      ClientHandler client,
+      String addressKey,
+      String deviceId,
+      String deviceName,
       boolean accepted) {
     pairing.handlePairingResponse(client, addressKey, deviceId, deviceName, accepted);
   }
 
-  public void resolveConnectionConflict(ClientHandler client, String addressKey, String deviceId, String deviceName,
+  public void resolveConnectionConflict(
+      ClientHandler client,
+      String addressKey,
+      String deviceId,
+      String deviceName,
       boolean keepNew) {
     pairing.resolveConnectionConflict(client, addressKey, deviceId, deviceName, keepNew);
   }
@@ -133,5 +210,9 @@ public class DashboardController {
 
   public List<Device> getDevicesList() {
     return devices.getDevicesList();
+  }
+
+  public void shutdown() {
+    networkExecutor.shutdown();
   }
 }

@@ -34,20 +34,54 @@ public class TLSContextFactory {
     }
   }
 
+  private static volatile SSLContext cachedContext;
+
+  private TLSContextFactory() {
+  }
+
+  public static void warmUp() {
+    try {
+      createServerContext();
+      System.out.println("[TLS] Keystore ready.");
+    } catch (Exception e) {
+      System.err.println("[TLS] Warm-up failed, will retry on first connect: " + e.getMessage());
+    }
+  }
+
+  public static void warmUpAsync() {
+    Thread warmupThread = new Thread(TLSContextFactory::warmUp, "tls-keystore-warmup");
+    warmupThread.setDaemon(true);
+    warmupThread.start();
+  }
+
   public static SSLContext createServerContext() throws Exception {
-    Path keystorePath = Path.of(System.getProperty("user.home"), ".vertexlink", "tls.p12");
+    SSLContext existing = cachedContext;
 
-    char[] password = loadOrCreatePassword();
+    if (existing != null) {
+      return existing;
+    }
 
-    KeyStore keyStore = loadOrCreateKeyStore(keystorePath, password);
+    synchronized (TLSContextFactory.class) {
+      if (cachedContext != null) {
+        return cachedContext;
+      }
 
-    KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-    keyManagerFactory.init(keyStore, password);
+      Path keystorePath = Path.of(System.getProperty("user.home"), ".vertexlink", "tls.p12");
 
-    SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
-    sslContext.init(keyManagerFactory.getKeyManagers(), null, new SecureRandom());
+      char[] password = loadOrCreatePassword();
 
-    return sslContext;
+      KeyStore keyStore = loadOrCreateKeyStore(keystorePath, password);
+
+      KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+      keyManagerFactory.init(keyStore, password);
+
+      SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
+      sslContext.init(keyManagerFactory.getKeyManagers(), null, new SecureRandom());
+
+      cachedContext = sslContext;
+
+      return sslContext;
+    }
   }
 
   private static char[] loadOrCreatePassword() {

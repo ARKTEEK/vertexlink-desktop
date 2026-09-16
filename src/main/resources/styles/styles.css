@@ -390,6 +390,11 @@
   -fx-background-color: rgba(239, 68, 68, 0.16);
 }
 
+.status-badge.status-shutting-down {
+  -fx-text-fill: #d4a017;
+  -fx-background-color: rgba(212, 160, 23, 0.12);
+}
+
 /* Information Panel */
 
 .info-panel {

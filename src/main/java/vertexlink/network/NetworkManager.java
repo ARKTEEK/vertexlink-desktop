@@ -5,7 +5,8 @@ import vertexlink.network.server.ClientHandler;
 import vertexlink.network.server.TCPServer;
 
 public class NetworkManager {
-  private final TCPServer tcpServer;
+  private final int tcpPort;
+  private TCPServer tcpServer;
   private boolean isRunning;
   private PairingListener pairingListener;
   private DataListener dataListener;
@@ -23,7 +24,7 @@ public class NetworkManager {
   }
 
   public NetworkManager(int tcpPort) {
-    this.tcpServer = new TCPServer(this, tcpPort);
+    this.tcpPort = tcpPort;
   }
 
   public void setPairingListener(PairingListener listener) {
@@ -43,17 +44,25 @@ public class NetworkManager {
 
     isRunning = true;
 
+    tcpServer = new TCPServer(this, tcpPort);
     tcpServer.start();
 
     System.out.println("[Network] Server started!");
   }
 
   public void stop() {
+    if (!isRunning) {
+      return;
+    }
+
     System.out.println("[Network] Shutting down...");
 
     isRunning = false;
 
-    tcpServer.shutdown();
+    if (tcpServer != null) {
+      tcpServer.shutdown();
+      tcpServer = null;
+    }
   }
 
   public void handleData(String data, ClientHandler client) {

@@ -31,6 +31,8 @@ public class DashboardView implements DashboardEventListener {
     this.controller = controller;
 
     this.controller.setEventListener(this);
+    this.controller.setConnectionStateListener(this::onConnectionStateChanged);
+    this.controller.setConnectionTransitionListener(this::onConnectionTransitionStarted);
 
     initPanels();
 
@@ -89,9 +91,18 @@ public class DashboardView implements DashboardEventListener {
 
   private void handleToggleConnection() {
     controller.toggleConnection();
-    devicesListPanel.setConnected(controller.isConnected());
+  }
 
-    if (!controller.isConnected()) {
+  private void onConnectionTransitionStarted(boolean goingOnline) {
+    if (!goingOnline) {
+      devicesListPanel.setShuttingDown(true);
+    }
+  }
+
+  private void onConnectionStateChanged(boolean nowConnected) {
+    devicesListPanel.setConnected(nowConnected);
+
+    if (!nowConnected) {
       closeInformationPanel();
     }
   }

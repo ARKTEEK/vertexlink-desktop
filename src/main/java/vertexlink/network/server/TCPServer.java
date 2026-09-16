@@ -6,6 +6,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
@@ -14,6 +17,9 @@ import javax.net.ssl.SSLServerSocketFactory;
 import vertexlink.network.NetworkManager;
 
 public class TCPServer extends Thread {
+  private static final int MAX_CONCURRENT_CLOSES = 8;
+  private static final int SHUTDOWN_TIMEOUT_SECONDS = 2;
+
   private final int port;
   private ServerSocket serverSocket;
   private volatile boolean isRunning;
@@ -63,21 +69,40 @@ public class TCPServer extends Thread {
   public void shutdown() {
     isRunning = false;
 
-    synchronized (clients) {
-      for (ClientHandler handler : clients) {
-        handler.close();
-      }
+    List<ClientHandler> toClose;
 
+    synchronized (clients) {
+      toClose = new ArrayList<>(clients);
       clients.clear();
     }
+
+    if (!toClose.isEmpty()) {
+      int poolSize = Math.min(toClose.size(), MAX_CONCURRENT_CLOSES);
+      ExecutorService closer = Executors.newFixedThreadPool(poolSize);
+
+      for (ClientHandler handler : toClose) {
+        closer.submit(handler::close);
+      }
+
+      closer.shutdown();
+
+      try {
+        if (!closer.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+          System.err.println("[TCP] Timed out waiting for client sockets to close cleanly");
+        }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    }
+
     try {
       if (serverSocket != null && !serverSocket.isClosed()) {
         serverSocket.close();
       }
-
     } catch (IOException e) {
       System.err.println("[TCP] Error closing server socket: " + e.getMessage());
     }
+
     System.out.println("[TCP] Shut down...");
   }
 }

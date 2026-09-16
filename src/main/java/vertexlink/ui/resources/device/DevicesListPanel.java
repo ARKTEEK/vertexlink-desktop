@@ -91,6 +91,10 @@ public class DevicesListPanel extends VBox {
     }
   }
 
+  public void setShuttingDown(boolean shuttingDown) {
+    headerCard.setShuttingDown(shuttingDown);
+  }
+
   public void setConnectedDevice(Device device) {
     connectedDeviceBox.getChildren().clear();
 
