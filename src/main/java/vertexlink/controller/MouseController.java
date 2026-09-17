@@ -1,45 +1,53 @@
 package vertexlink.controller;
 
+import java.awt.AWTException;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Robot;
-
-import vertexlink.enums.MouseAction;
-import vertexlink.provider.RobotProvider;
+import java.awt.event.InputEvent;
 
 public class MouseController {
-  private final Robot robot = RobotProvider.getInstance();
+  private final Robot robot;
+  private volatile boolean leftButtonHeld = false;
 
-  public void moveRelative(int x, int y) {
-    if (this.robot == null) {
-      return;
-    }
+  public MouseController() throws AWTException {
+    this.robot = new Robot();
+  }
 
+  public synchronized void moveRelative(int x, int y) {
     Point currentPosition = MouseInfo.getPointerInfo().getLocation();
 
     int newX = currentPosition.x + x;
     int newY = currentPosition.y + y;
-    this.robot.mouseMove(newX, newY);
+
+    robot.mouseMove(newX, newY);
   }
 
-  public void executeClick(MouseAction action) {
-    if (this.robot == null || action == null) {
-      return;
-    }
-
-    int mask = action.getMask();
-    this.robot.mousePress(mask);
-    this.robot.mouseRelease(mask);
+  public synchronized void leftClick() {
+    robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+    robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
   }
 
-  public void executeScroll(int amount) {
-    if (this.robot == null) {
-      return;
-    }
+  public synchronized void rightClick() {
+    robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
+    robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+  }
 
-    if (amount != 0) {
-      this.robot.mouseWheel(amount);
+  public synchronized void leftButtonDown() {
+    if (!leftButtonHeld) {
+      robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+      leftButtonHeld = true;
     }
   }
 
+  public synchronized void leftButtonUp() {
+    if (leftButtonHeld) {
+      robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+      leftButtonHeld = false;
+    }
+  }
+
+  public synchronized void releaseIfHeld() {
+    leftButtonUp();
+  }
 }

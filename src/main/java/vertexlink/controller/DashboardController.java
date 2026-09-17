@@ -22,21 +22,22 @@ import vertexlink.store.PairedDeviceStore;
 
 public class DashboardController {
   private static final int TCP_PORT = 28401;
-  private static final String DESKTOP_NAME = "DesktopServer";
+  private static final int UDP_PORT = 28402;
+  private static final String DESKTOP_NAME = "VertexLink Desktop";
 
   private final DeviceIdentity identity = new DeviceIdentity();
   private final DeviceBroadcaster broadcaster = new DeviceBroadcaster();
-  private final NetworkManager networkManager = new NetworkManager(TCP_PORT);
+  private final NetworkManager networkManager = new NetworkManager(TCP_PORT, UDP_PORT);
   private final ProtocolMessenger messenger = new ProtocolMessenger();
   private final PairingService pairingService = new PairingService(new PairedDeviceStore());
   private final DeviceDirectory devices = new DeviceDirectory(new DeviceState(), pairingService);
   private final PairingCoordinator pairing;
   private final DeviceScanner scanner;
+  private final MouseController mouseController = createMouseController();
 
   private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor(r -> {
     Thread t = new Thread(r, "network-lifecycle");
     t.setDaemon(true);
-
     return t;
   });
 
@@ -51,7 +52,18 @@ public class DashboardController {
 
     this.scanner = new DeviceScanner((id, name, address) -> onDeviceDiscovered(id, name, address), identity.getId());
 
+    networkManager.setMouseController(mouseController);
+
     setupNetworkListeners();
+  }
+
+  private static MouseController createMouseController() {
+    try {
+      return new MouseController();
+    } catch (Exception e) {
+      System.err.println("[Dashboard] Mouse control unavailable: " + e.getMessage());
+      return null;
+    }
   }
 
   public void setEventListener(DashboardEventListener listener) {
@@ -71,16 +83,13 @@ public class DashboardController {
     networkManager.setPairingListener(new NetworkManager.PairingListener() {
 
       @Override
-      public void onPairRequest(
-          String deviceId,
-          String deviceName,
-          String publicKey,
-          ClientHandler client) {
+      public void onPairRequest(String deviceId, String deviceName, String publicKey, ClientHandler client) {
         pairing.onPairRequest(deviceId, deviceName, publicKey, client);
       }
 
       @Override
       public void onAuth(String deviceId, String token, ClientHandler client) {
+        networkManager.setTrustedUdpAddress(client.getAddress());
         pairing.onAuth(deviceId, token, client);
       }
 
@@ -98,7 +107,6 @@ public class DashboardController {
     }
 
     transitioning = true;
-
     boolean goingOnline = !connected;
 
     notifyTransitionStarted(goingOnline);
@@ -128,7 +136,6 @@ public class DashboardController {
           if (connectionStateListener != null) {
             connectionStateListener.accept(connected);
           }
-
           if (!connected) {
             notifyDevicesChanged();
           }
@@ -156,25 +163,24 @@ public class DashboardController {
     });
   }
 
-  public void handlePairingResponse(
-      ClientHandler client,
-      String addressKey,
-      String deviceId,
-      String deviceName,
+  public void handlePairingResponse(ClientHandler client, String addressKey, String deviceId, String deviceName,
       boolean accepted) {
+    if (accepted) {
+      networkManager.setTrustedUdpAddress(client.getAddress());
+    }
     pairing.handlePairingResponse(client, addressKey, deviceId, deviceName, accepted);
   }
 
-  public void resolveConnectionConflict(
-      ClientHandler client,
-      String addressKey,
-      String deviceId,
-      String deviceName,
+  public void resolveConnectionConflict(ClientHandler client, String addressKey, String deviceId, String deviceName,
       boolean keepNew) {
+    if (keepNew) {
+      networkManager.setTrustedUdpAddress(client.getAddress());
+    }
     pairing.resolveConnectionConflict(client, addressKey, deviceId, deviceName, keepNew);
   }
 
   public void disconnectConnectedDevice() {
+    networkManager.clearTrustedUdpAddress();
     pairing.disconnectConnectedDevice();
   }
 

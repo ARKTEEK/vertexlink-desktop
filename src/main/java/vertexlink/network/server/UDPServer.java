@@ -31,10 +31,12 @@ public class UDPServer extends Thread {
         socket.receive(packet);
 
         String data = new String(packet.getData(), 0, packet.getLength());
-        // manager.handleData(data);
+        manager.handleUdpData(data, packet.getAddress());
       }
     } catch (IOException exception) {
-      System.err.println("[UDP] Server exception: " + exception.getMessage());
+      if (isRunning) {
+        System.err.println("[UDP] Server exception: " + exception.getMessage());
+      }
     }
   }
 
