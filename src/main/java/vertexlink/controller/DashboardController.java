@@ -48,7 +48,8 @@ public class DashboardController {
   private Consumer<Boolean> connectionTransitionListener;
 
   public DashboardController() {
-    this.pairing = new PairingCoordinator(pairingService, messenger, devices, identity.getId(), DESKTOP_NAME);
+    this.pairing = new PairingCoordinator(pairingService, messenger, devices, networkManager, identity.getId(),
+        DESKTOP_NAME);
 
     this.scanner = new DeviceScanner((id, name, address) -> onDeviceDiscovered(id, name, address), identity.getId());
 

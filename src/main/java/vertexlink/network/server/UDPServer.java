@@ -10,7 +10,7 @@ public class UDPServer extends Thread {
   private final int port;
   private DatagramSocket socket;
   private boolean isRunning;
-  private NetworkManager manager;
+  private final NetworkManager manager;
 
   public UDPServer(NetworkManager manager, int port) {
     this.manager = manager;
@@ -30,8 +30,7 @@ public class UDPServer extends Thread {
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
         socket.receive(packet);
 
-        String data = new String(packet.getData(), 0, packet.getLength());
-        manager.handleUdpData(data, packet.getAddress());
+        manager.handleUdpPacket(packet.getData(), packet.getLength(), packet.getAddress());
       }
     } catch (IOException exception) {
       if (isRunning) {
@@ -49,5 +48,4 @@ public class UDPServer extends Thread {
 
     System.out.println("[UDP] Shut down...");
   }
-
 }

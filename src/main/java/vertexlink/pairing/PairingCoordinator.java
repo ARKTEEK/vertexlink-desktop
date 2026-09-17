@@ -3,23 +3,27 @@ package vertexlink.pairing;
 import vertexlink.device.Device;
 import vertexlink.device.DeviceDirectory;
 import vertexlink.listener.DashboardEventListener;
+import vertexlink.network.NetworkManager;
 import vertexlink.network.protocol.ProtocolMessenger;
+import vertexlink.network.security.CryptoUtils;
 import vertexlink.network.server.ClientHandler;
 
 public class PairingCoordinator {
   private final PairingService pairingService;
   private final ProtocolMessenger messenger;
   private final DeviceDirectory devices;
+  private final NetworkManager networkManager;
   private final String desktopId;
   private final String desktopName;
 
   private DashboardEventListener eventListener;
 
   public PairingCoordinator(PairingService pairingService, ProtocolMessenger messenger,
-      DeviceDirectory devices, String desktopId, String desktopName) {
+      DeviceDirectory devices, NetworkManager networkManager, String desktopId, String desktopName) {
     this.pairingService = pairingService;
     this.messenger = messenger;
     this.devices = devices;
+    this.networkManager = networkManager;
     this.desktopId = desktopId;
     this.desktopName = desktopName;
   }
@@ -46,7 +50,6 @@ public class PairingCoordinator {
     if (!ok) {
       messenger.sendAuthResult(client, false, "Unknown device or invalid token");
       client.close();
-
       return;
     }
 
@@ -56,8 +59,7 @@ public class PairingCoordinator {
     Device existingConnected = devices.getConnectedDevice();
 
     if (existingConnected == null || deviceId.equals(existingConnected.getClientId())) {
-      completeConnection(client, addressKey, deviceId, deviceName);
-
+      completeConnection(client, addressKey, deviceId, deviceName, token);
       return;
     }
 
@@ -79,7 +81,8 @@ public class PairingCoordinator {
         devices.disconnectClient(previouslyConnected.getClientId());
       }
 
-      completeConnection(client, addressKey, deviceId, deviceName);
+      String token = pairingService.findPaired(deviceId).get().token();
+      completeConnection(client, addressKey, deviceId, deviceName, token);
     } else {
       messenger.sendAuthResult(client, false, "Another device is already connected");
       client.close();
@@ -92,6 +95,10 @@ public class PairingCoordinator {
 
     if (accepted) {
       String token = pairingService.completePairing(deviceId, deviceName);
+
+      byte[] sessionKey = CryptoUtils.deriveKeyFromToken(token);
+      networkManager.setUdpSessionKey(sessionKey);
+      networkManager.setTrustedUdpAddress(client.getAddress());
 
       messenger.sendPairSuccess(client, desktopId, desktopName, token);
       devices.markPaired(addressKey, deviceName, deviceId);
@@ -109,6 +116,7 @@ public class PairingCoordinator {
     Device disconnected = devices.disconnectClientHandler(client);
 
     if (disconnected != null) {
+      networkManager.clearTrustedUdpAddress();
       notifyDevicesChanged();
       notifyConnectedDeviceChanged();
     }
@@ -122,12 +130,18 @@ public class PairingCoordinator {
     }
 
     devices.disconnectClient(connected.getClientId());
+    networkManager.clearTrustedUdpAddress();
 
     notifyDevicesChanged();
     notifyConnectedDeviceChanged();
   }
 
-  private void completeConnection(ClientHandler client, String addressKey, String deviceId, String deviceName) {
+  private void completeConnection(ClientHandler client, String addressKey, String deviceId, String deviceName,
+      String token) {
+    byte[] sessionKey = CryptoUtils.deriveKeyFromToken(token);
+    networkManager.setUdpSessionKey(sessionKey);
+    networkManager.setTrustedUdpAddress(client.getAddress());
+
     messenger.sendAuthResult(client, true, null);
     devices.markConnected(addressKey, deviceName, deviceId, client);
 

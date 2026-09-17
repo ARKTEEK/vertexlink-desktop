@@ -1,6 +1,7 @@
 package vertexlink.network.security;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -27,6 +28,16 @@ public class CryptoUtils {
       e.printStackTrace();
 
       return null;
+    }
+  }
+
+  public static byte[] deriveKeyFromToken(String token) {
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      return digest.digest(token.getBytes(StandardCharsets.UTF_8));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new byte[32];
     }
   }
 

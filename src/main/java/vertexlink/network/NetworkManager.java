@@ -1,9 +1,11 @@
 package vertexlink.network;
 
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 
 import vertexlink.controller.MouseController;
 import vertexlink.network.protocol.Protocol;
+import vertexlink.network.security.UDPCrypto;
 import vertexlink.network.server.ClientHandler;
 import vertexlink.network.server.TCPServer;
 import vertexlink.network.server.UDPServer;
@@ -20,6 +22,7 @@ public class NetworkManager {
   private DataListener dataListener;
 
   private volatile InetAddress trustedUdpAddress;
+  private volatile UDPCrypto udpCrypto;
 
   public interface PairingListener {
     void onPairRequest(String deviceId, String deviceName, String publicKey, ClientHandler client);
@@ -50,12 +53,21 @@ public class NetworkManager {
     this.mouseInputHandler.setMouseController(controller);
   }
 
+  public void setUdpSessionKey(byte[] keyBytes) {
+    if (keyBytes != null) {
+      this.udpCrypto = new UDPCrypto(keyBytes);
+    } else {
+      this.udpCrypto = null;
+    }
+  }
+
   public void setTrustedUdpAddress(InetAddress address) {
     this.trustedUdpAddress = address;
   }
 
   public void clearTrustedUdpAddress() {
     this.trustedUdpAddress = null;
+    this.udpCrypto = null;
   }
 
   public void start() {
@@ -131,17 +143,25 @@ public class NetworkManager {
     }
   }
 
-  public void handleUdpData(String data, InetAddress sourceAddress) {
-    if (data == null || data.isEmpty()) {
-      return;
-    }
-
+  public void handleUdpPacket(byte[] data, int length, InetAddress sourceAddress) {
     if (trustedUdpAddress == null || !trustedUdpAddress.equals(sourceAddress)) {
       System.out.println("[Network] Dropping UDP packet from untrusted source: " + sourceAddress);
       return;
     }
 
-    mouseInputHandler.handleCommand(data);
+    UDPCrypto crypto = udpCrypto;
+    if (crypto == null) {
+      System.out.println("[Network] Dropping UDP packet, no session key configured");
+      return;
+    }
+
+    try {
+      byte[] decryptedBytes = crypto.decrypt(data, length);
+      String command = new String(decryptedBytes, StandardCharsets.UTF_8);
+      mouseInputHandler.handleCommand(command);
+    } catch (Exception e) {
+      System.err.println("[Network] Failed to decrypt UDP packet: " + e.getMessage());
+    }
   }
 
   public void handleDisconnect(ClientHandler client) {
