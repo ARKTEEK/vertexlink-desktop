@@ -1,18 +1,15 @@
 package vertexlink.controller;
 
-import java.awt.AWTException;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
 
-public class MouseController {
-  private final Robot robot;
-  private volatile boolean leftButtonHeld = false;
+import vertexlink.provider.RobotProvider;
 
-  public MouseController() throws AWTException {
-    this.robot = new Robot();
-  }
+public class MouseController {
+  private final Robot robot = RobotProvider.getInstance();
+  private volatile boolean leftButtonHeld = false;
 
   public synchronized void moveRelative(int x, int y) {
     Point currentPosition = MouseInfo.getPointerInfo().getLocation();
