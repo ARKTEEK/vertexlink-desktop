@@ -1,188 +1,113 @@
 package vertexlink.network;
 
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import vertexlink.controller.KeyboardController;
-import vertexlink.controller.MouseController;
-import vertexlink.network.protocol.Protocol;
-import vertexlink.network.security.UDPCrypto;
+import vertexlink.listener.NetworkDataListener;
+import vertexlink.listener.NetworkPairingListener;
+import vertexlink.network.protocol.InboundMessageRouter;
 import vertexlink.network.server.ClientHandler;
 import vertexlink.network.server.TCPServer;
 import vertexlink.network.server.UDPServer;
+import vertexlink.network.session.UDPSessionState;
 
 public class NetworkManager {
   private final int tcpPort;
   private final int udpPort;
-  private final MouseInputHandler mouseInputHandler = new MouseInputHandler();
-  private final KeyboardInputHandler keyboardInputHandler = new KeyboardInputHandler();
+  private final InboundMessageRouter messageRouter;
+  private final UDPSessionState udpSession;
+  private final AtomicBoolean running = new AtomicBoolean(false);
 
   private TCPServer tcpServer;
   private UDPServer udpServer;
-  private boolean isRunning;
-  private PairingListener pairingListener;
-  private DataListener dataListener;
+  private NetworkPairingListener pairingListener;
 
-  private volatile InetAddress trustedUdpAddress;
-  private volatile UDPCrypto udpCrypto;
-
-  public interface PairingListener {
-    void onPairRequest(String deviceId, String deviceName, String publicKey, ClientHandler client);
-
-    void onAuth(String deviceId, String token, ClientHandler client);
-
-    void onDisconnect(ClientHandler client);
-  }
-
-  public interface DataListener {
-    void onData(String data, ClientHandler client);
-  }
-
-  public NetworkManager(int tcpPort, int udpPort) {
+  public NetworkManager(
+      int tcpPort,
+      int udpPort,
+      InboundMessageRouter messageRouter,
+      UDPSessionState udpSession) {
     this.tcpPort = tcpPort;
     this.udpPort = udpPort;
+    this.messageRouter = messageRouter;
+    this.udpSession = udpSession;
   }
 
-  public void setPairingListener(PairingListener listener) {
+  public void setPairingListener(NetworkPairingListener listener) {
     this.pairingListener = listener;
+    this.messageRouter.setPairingListener(listener);
   }
 
-  public void setDataListener(DataListener listener) {
-    this.dataListener = listener;
-  }
-
-  public void setMouseController(MouseController controller) {
-    this.mouseInputHandler.setMouseController(controller);
-  }
-
-  public void setKeyboardController(KeyboardController controller) {
-    this.keyboardInputHandler.setKeyboardController(controller);
+  public void setDataListener(NetworkDataListener listener) {
+    this.messageRouter.setDataListener(listener);
   }
 
   public void setUdpSessionKey(byte[] keyBytes) {
-    if (keyBytes != null) {
-      this.udpCrypto = new UDPCrypto(keyBytes);
-    } else {
-      this.udpCrypto = null;
-    }
+    this.udpSession.setSessionKey(keyBytes);
   }
 
   public void setTrustedUdpAddress(InetAddress address) {
-    this.trustedUdpAddress = address;
+    this.udpSession.setTrustedAddress(address);
   }
 
   public void clearTrustedUdpAddress() {
-    this.trustedUdpAddress = null;
-    this.udpCrypto = null;
+    this.udpSession.clear();
   }
 
   public void start() {
-    if (isRunning) {
+    if (!this.running.compareAndSet(false, true)) {
       System.out.println("[Network] Already running!");
       return;
     }
 
-    isRunning = true;
-    tcpServer = new TCPServer(this, tcpPort);
-    tcpServer.start();
+    this.tcpServer = new TCPServer(this, this.tcpPort);
+    this.tcpServer.start();
 
-    udpServer = new UDPServer(this, udpPort);
-    udpServer.start();
+    this.udpServer = new UDPServer(this, this.udpPort);
+    this.udpServer.start();
 
     System.out.println("[Network] Server started!");
   }
 
   public void stop() {
-    if (!isRunning) {
+    if (!this.running.compareAndSet(true, false)) {
       return;
     }
 
     System.out.println("[Network] Shutting down...");
 
-    isRunning = false;
-
-    if (tcpServer != null) {
-      tcpServer.shutdown();
-      tcpServer = null;
+    if (this.tcpServer != null) {
+      this.tcpServer.shutdown();
+      this.tcpServer = null;
     }
 
-    if (udpServer != null) {
-      udpServer.shutdown();
-      udpServer = null;
+    if (this.udpServer != null) {
+      this.udpServer.shutdown();
+      this.udpServer = null;
     }
 
     clearTrustedUdpAddress();
   }
 
   public void handleData(String data, ClientHandler client) {
-    if (data == null || data.isEmpty()) {
-      return;
-    }
-
-    if (mouseInputHandler.handleCommand(data)) {
-      return;
-    }
-
-    if (keyboardInputHandler.handleCommand(data)) {
-      return;
-    }
-
-    Protocol.Decoded decoded = Protocol.decode(data);
-
-    if ("PAIR_REQUEST".equals(decoded.type)) {
-      if (pairingListener != null) {
-        pairingListener.onPairRequest(
-            decoded.fields.get("deviceId"),
-            decoded.fields.get("deviceName"),
-            decoded.fields.get("publicKey"),
-            client);
-      }
-    } else if ("AUTH".equals(decoded.type)) {
-      if (pairingListener != null) {
-        pairingListener.onAuth(
-            decoded.fields.get("deviceId"),
-            decoded.fields.get("token"),
-            client);
-      }
-    } else {
-      System.out.println("[Network] Received data: " + data);
-
-      if (dataListener != null) {
-        dataListener.onData(data, client);
-      }
-    }
+    this.messageRouter.route(data, client);
   }
 
   public void handleUdpPacket(byte[] data, int length, InetAddress sourceAddress) {
-    if (trustedUdpAddress == null || !trustedUdpAddress.equals(sourceAddress)) {
-      System.out.println("[Network] Dropping UDP packet from untrusted source: " + sourceAddress);
-      return;
-    }
+    String command = this.udpSession.decrypt(data, length, sourceAddress);
 
-    UDPCrypto crypto = udpCrypto;
-    if (crypto == null) {
-      System.out.println("[Network] Dropping UDP packet, no session key configured");
-      return;
-    }
-
-    try {
-      byte[] decryptedBytes = crypto.decrypt(data, length);
-      String command = new String(decryptedBytes, StandardCharsets.UTF_8);
-      mouseInputHandler.handleCommand(command);
-    } catch (Exception e) {
-      System.err.println("[Network] Failed to decrypt UDP packet: " + e.getMessage());
+    if (command != null) {
+      this.messageRouter.route(command, null);
     }
   }
 
   public void handleDisconnect(ClientHandler client) {
-    mouseInputHandler.releaseIfHeld();
-
-    if (trustedUdpAddress != null && trustedUdpAddress.equals(client.getAddress())) {
+    if (this.udpSession.isTrustedSource(client.getAddress())) {
       clearTrustedUdpAddress();
     }
 
-    if (pairingListener != null) {
-      pairingListener.onDisconnect(client);
+    if (this.pairingListener != null) {
+      this.pairingListener.onDisconnect(client);
     }
   }
 }

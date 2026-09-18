@@ -15,6 +15,7 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 
 import vertexlink.network.NetworkManager;
+import vertexlink.network.security.TLSContextFactory;
 
 public class TCPServer extends Thread {
   private static final int MAX_CONCURRENT_CLOSES = 8;

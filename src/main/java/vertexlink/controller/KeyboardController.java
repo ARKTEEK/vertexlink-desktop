@@ -5,7 +5,6 @@ import java.awt.Robot;
 import vertexlink.provider.RobotProvider;
 
 public class KeyboardController {
-
   private final Robot robot = RobotProvider.getInstance();
 
   public void executeKey(int keyCode) {

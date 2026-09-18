@@ -1,4 +1,4 @@
-package vertexlink.network;
+package vertexlink.handler;
 
 import vertexlink.controller.MouseController;
 

@@ -3,12 +3,13 @@ package vertexlink.pairing;
 import vertexlink.device.Device;
 import vertexlink.device.DeviceDirectory;
 import vertexlink.listener.DashboardEventListener;
+import vertexlink.listener.NetworkPairingListener;
 import vertexlink.network.NetworkManager;
 import vertexlink.network.protocol.ProtocolMessenger;
 import vertexlink.network.security.CryptoUtils;
 import vertexlink.network.server.ClientHandler;
 
-public class PairingCoordinator {
+public class PairingCoordinator implements NetworkPairingListener {
   private final PairingService pairingService;
   private final ProtocolMessenger messenger;
   private final DeviceDirectory devices;
@@ -18,8 +19,13 @@ public class PairingCoordinator {
 
   private DashboardEventListener eventListener;
 
-  public PairingCoordinator(PairingService pairingService, ProtocolMessenger messenger,
-      DeviceDirectory devices, NetworkManager networkManager, String desktopId, String desktopName) {
+  public PairingCoordinator(
+      PairingService pairingService,
+      ProtocolMessenger messenger,
+      DeviceDirectory devices,
+      NetworkManager networkManager,
+      String desktopId,
+      String desktopName) {
     this.pairingService = pairingService;
     this.messenger = messenger;
     this.devices = devices;
@@ -32,7 +38,12 @@ public class PairingCoordinator {
     this.eventListener = eventListener;
   }
 
-  public void onPairRequest(String deviceId, String deviceName, String clientPublicKeyStr, ClientHandler client) {
+  @Override
+  public void onPairRequest(
+      String deviceId,
+      String deviceName,
+      String clientPublicKeyStr,
+      ClientHandler client) {
     String addressKey = client.getAddress().getHostAddress();
     PairingService.Challenge challenge = pairingService.createChallenge(addressKey, clientPublicKeyStr);
 
@@ -44,12 +55,17 @@ public class PairingCoordinator {
     }
   }
 
-  public void onAuth(String deviceId, String token, ClientHandler client) {
+  @Override
+  public void onAuth(
+      String deviceId,
+      String token,
+      ClientHandler client) {
     boolean ok = pairingService.verifyAuth(deviceId, token);
 
     if (!ok) {
       messenger.sendAuthResult(client, false, "Unknown device or invalid token");
       client.close();
+
       return;
     }
 
@@ -60,6 +76,7 @@ public class PairingCoordinator {
 
     if (existingConnected == null || deviceId.equals(existingConnected.getClientId())) {
       completeConnection(client, addressKey, deviceId, deviceName, token);
+
       return;
     }
 
@@ -70,7 +87,11 @@ public class PairingCoordinator {
     }
   }
 
-  public void resolveConnectionConflict(ClientHandler client, String addressKey, String deviceId, String deviceName,
+  public void resolveConnectionConflict(
+      ClientHandler client,
+      String addressKey,
+      String deviceId,
+      String deviceName,
       boolean keepNew) {
     devices.removePendingClient(addressKey);
 
@@ -82,6 +103,7 @@ public class PairingCoordinator {
       }
 
       String token = pairingService.findPaired(deviceId).get().token();
+
       completeConnection(client, addressKey, deviceId, deviceName, token);
     } else {
       messenger.sendAuthResult(client, false, "Another device is already connected");
@@ -89,7 +111,11 @@ public class PairingCoordinator {
     }
   }
 
-  public void handlePairingResponse(ClientHandler client, String addressKey, String deviceId, String deviceName,
+  public void handlePairingResponse(
+      ClientHandler client,
+      String addressKey,
+      String deviceId,
+      String deviceName,
       boolean accepted) {
     pairingService.discardChallenge(addressKey);
 
@@ -112,6 +138,7 @@ public class PairingCoordinator {
     }
   }
 
+  @Override
   public void onDisconnect(ClientHandler client) {
     Device disconnected = devices.disconnectClientHandler(client);
 
@@ -136,7 +163,11 @@ public class PairingCoordinator {
     notifyConnectedDeviceChanged();
   }
 
-  private void completeConnection(ClientHandler client, String addressKey, String deviceId, String deviceName,
+  private void completeConnection(
+      ClientHandler client,
+      String addressKey,
+      String deviceId,
+      String deviceName,
       String token) {
     byte[] sessionKey = CryptoUtils.deriveKeyFromToken(token);
     networkManager.setUdpSessionKey(sessionKey);

@@ -5,7 +5,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import vertexlink.controller.DashboardController;
+import vertexlink.AppCoordinator;
 import vertexlink.device.Device;
 import vertexlink.listener.DashboardEventListener;
 import vertexlink.network.server.ClientHandler;
@@ -24,9 +24,9 @@ public class DashboardView implements DashboardEventListener {
 
   private DevicesListPanel devicesListPanel;
   private InformationPanel informationPanel;
-  private final DashboardController controller;
+  private final AppCoordinator controller;
 
-  public DashboardView(Stage ownerStage, DashboardController controller) {
+  public DashboardView(Stage ownerStage, AppCoordinator controller) {
     this.ownerStage = ownerStage;
     this.controller = controller;
 

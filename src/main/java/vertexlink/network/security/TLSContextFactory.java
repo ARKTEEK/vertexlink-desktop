@@ -1,4 +1,4 @@
-package vertexlink.network.server;
+package vertexlink.network.security;
 
 import java.io.InputStream;
 import java.io.OutputStream;
