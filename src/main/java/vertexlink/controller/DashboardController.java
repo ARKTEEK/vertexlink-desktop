@@ -34,6 +34,7 @@ public class DashboardController {
   private final PairingCoordinator pairing;
   private final DeviceScanner scanner;
   private final MouseController mouseController = createMouseController();
+  private final KeyboardController keyboardController = createKeyboardController();
 
   private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor(r -> {
     Thread t = new Thread(r, "network-lifecycle");
@@ -54,6 +55,7 @@ public class DashboardController {
     this.scanner = new DeviceScanner((id, name, address) -> onDeviceDiscovered(id, name, address), identity.getId());
 
     networkManager.setMouseController(mouseController);
+    networkManager.setKeyboardController(keyboardController);
 
     setupNetworkListeners();
   }
@@ -63,6 +65,15 @@ public class DashboardController {
       return new MouseController();
     } catch (Exception e) {
       System.err.println("[Dashboard] Mouse control unavailable: " + e.getMessage());
+      return null;
+    }
+  }
+
+  private static KeyboardController createKeyboardController() {
+    try {
+      return new KeyboardController();
+    } catch (Exception e) {
+      System.err.println("[Dashboard] Keyboard control unavailable: " + e.getMessage());
       return null;
     }
   }

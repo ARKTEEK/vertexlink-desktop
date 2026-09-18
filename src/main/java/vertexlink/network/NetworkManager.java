@@ -3,6 +3,7 @@ package vertexlink.network;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 
+import vertexlink.controller.KeyboardController;
 import vertexlink.controller.MouseController;
 import vertexlink.network.protocol.Protocol;
 import vertexlink.network.security.UDPCrypto;
@@ -14,6 +15,7 @@ public class NetworkManager {
   private final int tcpPort;
   private final int udpPort;
   private final MouseInputHandler mouseInputHandler = new MouseInputHandler();
+  private final KeyboardInputHandler keyboardInputHandler = new KeyboardInputHandler();
 
   private TCPServer tcpServer;
   private UDPServer udpServer;
@@ -51,6 +53,10 @@ public class NetworkManager {
 
   public void setMouseController(MouseController controller) {
     this.mouseInputHandler.setMouseController(controller);
+  }
+
+  public void setKeyboardController(KeyboardController controller) {
+    this.keyboardInputHandler.setKeyboardController(controller);
   }
 
   public void setUdpSessionKey(byte[] keyBytes) {
@@ -114,6 +120,10 @@ public class NetworkManager {
     }
 
     if (mouseInputHandler.handleCommand(data)) {
+      return;
+    }
+
+    if (keyboardInputHandler.handleCommand(data)) {
       return;
     }
 
