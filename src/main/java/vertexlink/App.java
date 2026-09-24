@@ -80,12 +80,11 @@ public class App extends Application {
     KeyboardInputHandler keyboardInputHandler = new KeyboardInputHandler();
     keyboardInputHandler.setKeyboardController(keyboardController);
 
-    InboundMessageRouter messageRouter = new InboundMessageRouter(mouseInputHandler, keyboardInputHandler);
+    ProtocolMessenger messenger = new ProtocolMessenger();
+    InboundMessageRouter messageRouter = new InboundMessageRouter(mouseInputHandler, keyboardInputHandler, messenger);
     UDPSessionState udpSession = new UDPSessionState();
 
     NetworkManager networkManager = new NetworkManager(TCP_PORT, UDP_PORT, messageRouter, udpSession);
-
-    ProtocolMessenger messenger = new ProtocolMessenger();
     PairingCoordinator pairing = new PairingCoordinator(
         pairingService,
         messenger,

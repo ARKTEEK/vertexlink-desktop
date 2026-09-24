@@ -9,13 +9,18 @@ import vertexlink.network.server.ClientHandler;
 public class InboundMessageRouter {
   private final MouseInputHandler mouseInputHandler;
   private final KeyboardInputHandler keyboardInputHandler;
+  private final ProtocolMessenger messenger;
 
   private NetworkPairingListener pairingListener;
   private NetworkDataListener dataListener;
 
-  public InboundMessageRouter(MouseInputHandler mouseInputHandler, KeyboardInputHandler keyboardInputHandler) {
+  public InboundMessageRouter(
+      MouseInputHandler mouseInputHandler,
+      KeyboardInputHandler keyboardInputHandler,
+      ProtocolMessenger messenger) {
     this.mouseInputHandler = mouseInputHandler;
     this.keyboardInputHandler = keyboardInputHandler;
+    this.messenger = messenger;
   }
 
   public void setPairingListener(NetworkPairingListener listener) {
@@ -45,8 +50,16 @@ public class InboundMessageRouter {
       routePairRequest(decoded, client);
     } else if ("AUTH".equals(decoded.type)) {
       routeAuth(decoded, client);
+    } else if ("PING".equals(decoded.type)) {
+      routePing(client);
     } else {
       routeApplicationData(data, client);
+    }
+  }
+
+  private void routePing(ClientHandler client) {
+    if (client != null && messenger != null) {
+      messenger.sendPong(client);
     }
   }
 

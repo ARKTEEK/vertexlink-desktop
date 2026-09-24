@@ -1,5 +1,6 @@
 package vertexlink.network.protocol;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -47,5 +48,9 @@ public class ProtocolMessenger {
     }
 
     client.send(Protocol.encode("PAIR_DECISION", fields));
+  }
+
+  public void sendPong(ClientHandler client) {
+    client.send(Protocol.encode("PONG", Collections.emptyMap()));
   }
 }
