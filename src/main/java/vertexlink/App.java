@@ -77,12 +77,8 @@ public class App extends Application {
     KeyboardController keyboardController = PeripheralControllers.createKeyboardController();
     AudioController audioController = PeripheralControllers.creaAudioController();
 
-    MouseInputHandler mouseInputHandler = new MouseInputHandler();
-    mouseInputHandler.setMouseController(mouseController);
-
-    KeyboardInputHandler keyboardInputHandler = new KeyboardInputHandler();
-    keyboardInputHandler.setKeyboardController(keyboardController);
-
+    MouseInputHandler mouseInputHandler = new MouseInputHandler(mouseController);
+    KeyboardInputHandler keyboardInputHandler = new KeyboardInputHandler(keyboardController);
     AudioHandler audioHandler = new AudioHandler(audioController);
 
     ProtocolMessenger messenger = new ProtocolMessenger();

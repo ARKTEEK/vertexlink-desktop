@@ -9,14 +9,18 @@ public class MouseInputHandler {
   private static final String MOUSE_LEFT_DOWN = "MOUSE_LEFT_DOWN";
   private static final String MOUSE_LEFT_UP = "MOUSE_LEFT_UP";
 
-  private MouseController mouseController;
+  private final MouseController mouseController;
 
-  public void setMouseController(MouseController mouseController) {
+  public MouseInputHandler(MouseController mouseController) {
+    if (mouseController == null) {
+      throw new IllegalArgumentException("MouseController cannot be null");
+    }
+
     this.mouseController = mouseController;
   }
 
   public boolean handleCommand(String data) {
-    if (data == null || data.isEmpty() || mouseController == null) {
+    if (data == null || data.isEmpty()) {
       return false;
     }
 
@@ -27,21 +31,25 @@ public class MouseInputHandler {
 
     if (MOUSE_LEFT_CLICK.equals(data)) {
       mouseController.leftClick();
+
       return true;
     }
 
     if (MOUSE_RIGHT_CLICK.equals(data)) {
       mouseController.rightClick();
+
       return true;
     }
 
     if (MOUSE_LEFT_DOWN.equals(data)) {
       mouseController.leftButtonDown();
+
       return true;
     }
 
     if (MOUSE_LEFT_UP.equals(data)) {
       mouseController.leftButtonUp();
+
       return true;
     }
 

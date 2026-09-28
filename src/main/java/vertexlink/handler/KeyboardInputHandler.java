@@ -5,14 +5,18 @@ import vertexlink.controller.KeyboardController;
 public class KeyboardInputHandler {
   private static final String KEY_COMBO_PREFIX = "KEY_COMBO:";
 
-  private KeyboardController keyboardController;
+  private final KeyboardController keyboardController;
 
-  public void setKeyboardController(KeyboardController keyboardController) {
+  public KeyboardInputHandler(KeyboardController keyboardController) {
+    if (keyboardController == null) {
+      throw new IllegalArgumentException("KeyboardController cannot be null");
+    }
+
     this.keyboardController = keyboardController;
   }
 
   public boolean handleCommand(String data) {
-    if (data == null || data.isEmpty() || keyboardController == null) {
+    if (data == null || data.isEmpty()) {
       return false;
     }
 
@@ -32,12 +36,12 @@ public class KeyboardInputHandler {
 
       int[] keyCodes = new int[parts.length];
 
-      for (int i = 0; i < parts.length; i++) {
-        keyCodes[i] = Integer.parseInt(parts[i].trim());
+      for (int index = 0; index < parts.length; index++) {
+        keyCodes[index] = Integer.parseInt(parts[index].trim());
       }
 
       keyboardController.executeCombo(keyCodes);
-    } catch (Exception e) {
+    } catch (Exception exception) {
       System.err.println("[Network] Malformed key combo payload: " + data);
     }
   }
