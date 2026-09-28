@@ -10,9 +10,11 @@ import javafx.stage.StageStyle;
 import vertexlink.controller.KeyboardController;
 import vertexlink.controller.MouseController;
 import vertexlink.controller.PeripheralControllers;
+import vertexlink.controller.audio.AudioController;
 import vertexlink.device.DeviceDirectory;
 import vertexlink.device.DeviceIdentity;
 import vertexlink.device.DeviceState;
+import vertexlink.handler.AudioHandler;
 import vertexlink.handler.KeyboardInputHandler;
 import vertexlink.handler.MouseInputHandler;
 import vertexlink.listener.NetworkPairingListener;
@@ -73,6 +75,7 @@ public class App extends Application {
 
     MouseController mouseController = PeripheralControllers.createMouseController();
     KeyboardController keyboardController = PeripheralControllers.createKeyboardController();
+    AudioController audioController = PeripheralControllers.creaAudioController();
 
     MouseInputHandler mouseInputHandler = new MouseInputHandler();
     mouseInputHandler.setMouseController(mouseController);
@@ -80,8 +83,14 @@ public class App extends Application {
     KeyboardInputHandler keyboardInputHandler = new KeyboardInputHandler();
     keyboardInputHandler.setKeyboardController(keyboardController);
 
+    AudioHandler audioHandler = new AudioHandler(audioController);
+
     ProtocolMessenger messenger = new ProtocolMessenger();
-    InboundMessageRouter messageRouter = new InboundMessageRouter(mouseInputHandler, keyboardInputHandler, messenger);
+    InboundMessageRouter messageRouter = new InboundMessageRouter(
+        mouseInputHandler,
+        keyboardInputHandler,
+        audioHandler,
+        messenger);
     UDPSessionState udpSession = new UDPSessionState();
 
     NetworkManager networkManager = new NetworkManager(TCP_PORT, UDP_PORT, messageRouter, udpSession);

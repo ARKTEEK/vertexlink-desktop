@@ -1,5 +1,6 @@
 package vertexlink.network.protocol;
 
+import vertexlink.handler.AudioHandler;
 import vertexlink.handler.KeyboardInputHandler;
 import vertexlink.handler.MouseInputHandler;
 import vertexlink.listener.NetworkDataListener;
@@ -9,6 +10,7 @@ import vertexlink.network.server.ClientHandler;
 public class InboundMessageRouter {
   private final MouseInputHandler mouseInputHandler;
   private final KeyboardInputHandler keyboardInputHandler;
+  private final AudioHandler audioHandler;
   private final ProtocolMessenger messenger;
 
   private NetworkPairingListener pairingListener;
@@ -17,9 +19,11 @@ public class InboundMessageRouter {
   public InboundMessageRouter(
       MouseInputHandler mouseInputHandler,
       KeyboardInputHandler keyboardInputHandler,
+      AudioHandler audioHandler,
       ProtocolMessenger messenger) {
     this.mouseInputHandler = mouseInputHandler;
     this.keyboardInputHandler = keyboardInputHandler;
+    this.audioHandler = audioHandler;
     this.messenger = messenger;
   }
 
@@ -41,6 +45,10 @@ public class InboundMessageRouter {
     }
 
     if (keyboardInputHandler.handleCommand(data)) {
+      return;
+    }
+
+    if (audioHandler.handleCommand(data, client)) {
       return;
     }
 
