@@ -7,6 +7,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import vertexlink.controller.ClipboardController;
 import vertexlink.controller.KeyboardController;
 import vertexlink.controller.MouseController;
 import vertexlink.controller.PeripheralControllers;
@@ -15,6 +16,7 @@ import vertexlink.device.DeviceDirectory;
 import vertexlink.device.DeviceIdentity;
 import vertexlink.device.DeviceState;
 import vertexlink.handler.AudioHandler;
+import vertexlink.handler.ClipboardHandler;
 import vertexlink.handler.KeyboardInputHandler;
 import vertexlink.handler.MouseInputHandler;
 import vertexlink.listener.NetworkPairingListener;
@@ -76,16 +78,19 @@ public class App extends Application {
     MouseController mouseController = PeripheralControllers.createMouseController();
     KeyboardController keyboardController = PeripheralControllers.createKeyboardController();
     AudioController audioController = PeripheralControllers.creaAudioController();
+    ClipboardController clipboardController = PeripheralControllers.createClipboardController();
 
     MouseInputHandler mouseInputHandler = new MouseInputHandler(mouseController);
     KeyboardInputHandler keyboardInputHandler = new KeyboardInputHandler(keyboardController);
     AudioHandler audioHandler = new AudioHandler(audioController);
+    ClipboardHandler clipboardHandler = new ClipboardHandler(clipboardController);
 
     ProtocolMessenger messenger = new ProtocolMessenger();
     InboundMessageRouter messageRouter = new InboundMessageRouter(
         mouseInputHandler,
         keyboardInputHandler,
         audioHandler,
+        clipboardHandler,
         messenger);
     UDPSessionState udpSession = new UDPSessionState();
 

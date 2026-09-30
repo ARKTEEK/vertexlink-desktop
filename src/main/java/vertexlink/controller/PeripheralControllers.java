@@ -32,4 +32,14 @@ public final class PeripheralControllers {
       return null;
     }
   }
+
+  public static ClipboardController createClipboardController() {
+    try {
+      return new ClipboardController();
+    } catch (Exception e) {
+      System.err.println("[Dashboard] Clipboard control unavailable: " + e.getMessage());
+
+      return null;
+    }
+  }
 }
