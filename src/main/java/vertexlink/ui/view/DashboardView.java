@@ -1,10 +1,19 @@
 package vertexlink.ui.view;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
-import javafx.scene.layout.HBox;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import vertexlink.AppCoordinator;
 import vertexlink.device.Device;
 import vertexlink.listener.DashboardEventListener;
@@ -14,20 +23,19 @@ import vertexlink.ui.resources.device.DevicesListPanel;
 import vertexlink.ui.resources.information.InformationPanel;
 
 public class DashboardView implements DashboardEventListener {
-  private static final double COLLAPSED_WIDTH = 470;
-  private static final double EXPANDED_WIDTH = 770;
+  private static final double SHEET_OFFSET = 700;
 
   private final VBox rootContainer;
-  private final HBox mainContent;
+  private final StackPane mainContent;
+  private final Region scrim = new Region();
+  private ParallelTransition sheetAnimation;
   private final PairingBanner pairingBanner = new PairingBanner();
-  private final Stage ownerStage;
 
   private DevicesListPanel devicesListPanel;
   private InformationPanel informationPanel;
   private final AppCoordinator controller;
 
   public DashboardView(Stage ownerStage, AppCoordinator controller) {
-    this.ownerStage = ownerStage;
     this.controller = controller;
 
     this.controller.setEventListener(this);
@@ -36,17 +44,27 @@ public class DashboardView implements DashboardEventListener {
 
     initPanels();
 
-    mainContent = new HBox(devicesListPanel, informationPanel);
-    HBox.setHgrow(devicesListPanel, Priority.ALWAYS);
+    scrim.getStyleClass().add("sheet-scrim");
+    scrim.setVisible(false);
+    scrim.setOnMouseClicked(e -> closeInformationPanel());
+
+    mainContent = new StackPane(devicesListPanel, scrim, informationPanel);
+    mainContent.getStyleClass().add("dashboard-main");
+    StackPane.setAlignment(informationPanel, Pos.BOTTOM_CENTER);
+
+    Rectangle clip = new Rectangle();
+    clip.widthProperty().bind(mainContent.widthProperty());
+    clip.heightProperty().bind(mainContent.heightProperty());
+    mainContent.setClip(clip);
 
     rootContainer = new VBox(mainContent, pairingBanner);
     VBox.setVgrow(mainContent, Priority.ALWAYS);
+    VBox.setMargin(pairingBanner, new Insets(0, 12, 12, 12));
   }
 
   private void initPanels() {
     informationPanel = new InformationPanel(this::closeInformationPanel);
     informationPanel.setVisible(false);
-    informationPanel.setManaged(false);
 
     devicesListPanel = new DevicesListPanel(
         "Desktop",
@@ -58,9 +76,6 @@ public class DashboardView implements DashboardEventListener {
         controller::refreshDevices,
         controller::disconnectConnectedDevice);
 
-    devicesListPanel.setMinWidth(COLLAPSED_WIDTH);
-    devicesListPanel.setMaxWidth(COLLAPSED_WIDTH);
-
     devicesListPanel.setConnectedDevice(controller.getConnectedDevice());
   }
 
@@ -68,24 +83,56 @@ public class DashboardView implements DashboardEventListener {
     informationPanel.showDevice(device);
 
     if (!informationPanel.isVisible()) {
-      resizeStage(EXPANDED_WIDTH);
-      informationPanel.setManaged(true);
-      informationPanel.setVisible(true);
+      openSheet();
     }
   }
 
-  private void resizeStage(double width) {
-    ownerStage.setMinWidth(width);
-    ownerStage.setMaxWidth(width);
-    ownerStage.setWidth(width);
+  private void openSheet() {
+    stopSheetAnimation();
+
+    scrim.setOpacity(0);
+    scrim.setVisible(true);
+    informationPanel.setTranslateY(SHEET_OFFSET);
+    informationPanel.setVisible(true);
+
+    TranslateTransition slide = new TranslateTransition(Duration.millis(240), informationPanel);
+    slide.setToY(0);
+    slide.setInterpolator(Interpolator.EASE_OUT);
+
+    FadeTransition fade = new FadeTransition(Duration.millis(240), scrim);
+    fade.setToValue(1);
+
+    sheetAnimation = new ParallelTransition(slide, fade);
+    sheetAnimation.play();
   }
 
   private void closeInformationPanel() {
-    if (informationPanel.isVisible()) {
-      informationPanel.clear();
+    if (!informationPanel.isVisible()) {
+      return;
+    }
+
+    stopSheetAnimation();
+
+    TranslateTransition slide = new TranslateTransition(Duration.millis(190), informationPanel);
+    slide.setToY(SHEET_OFFSET);
+    slide.setInterpolator(Interpolator.EASE_IN);
+
+    FadeTransition fade = new FadeTransition(Duration.millis(190), scrim);
+    fade.setToValue(0);
+
+    sheetAnimation = new ParallelTransition(slide, fade);
+    sheetAnimation.setOnFinished(e -> {
       informationPanel.setVisible(false);
-      informationPanel.setManaged(false);
-      resizeStage(COLLAPSED_WIDTH);
+      scrim.setVisible(false);
+      informationPanel.clear();
+    });
+    sheetAnimation.play();
+  }
+
+  private void stopSheetAnimation() {
+    if (sheetAnimation != null) {
+      sheetAnimation.stop();
+      sheetAnimation = null;
     }
   }
 

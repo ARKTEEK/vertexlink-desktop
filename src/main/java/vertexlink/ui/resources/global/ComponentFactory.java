@@ -12,8 +12,23 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 
 public class ComponentFactory {
+  private static final Duration TOOLTIP_DELAY = Duration.millis(1000);
+
+  public static Tooltip createTooltip(String text) {
+    Tooltip tooltip = new Tooltip(text);
+    tooltip.setShowDelay(TOOLTIP_DELAY);
+    tooltip.setHideDelay(Duration.millis(100));
+    tooltip.setShowDuration(Duration.seconds(8));
+
+    return tooltip;
+  }
+
+  public static void setTooltip(Button button, String text) {
+    button.setTooltip(createTooltip(text));
+  }
 
   public static Button createIconButton(String svgContent) {
     Button button = new Button();
@@ -53,6 +68,14 @@ public class ComponentFactory {
     return badge;
   }
 
+  public static Label createNeutralBadge(String text) {
+    Label badge = new Label(text);
+    badge.getStyleClass().addAll("status-badge", "status-neutral");
+    badge.setMaxWidth(Region.USE_PREF_SIZE);
+
+    return badge;
+  }
+
   public static VBox createInfoRow(String label, String value) {
     Label lbl = new Label(label);
     lbl.getStyleClass().add("info-label");
@@ -60,7 +83,7 @@ public class ComponentFactory {
     Label val = new Label(value == null || value.isEmpty() ? "\u2014" : value);
     val.getStyleClass().add("info-value");
 
-    Tooltip tooltip = new Tooltip(value);
+    Tooltip tooltip = createTooltip(value);
 
     val.boundsInLocalProperty().addListener((obs, oldBounds, newBounds) -> {
       if (isTextClipped(val)) {
@@ -71,7 +94,7 @@ public class ComponentFactory {
     });
 
     Button copyBtn = createIconButton(IconPaths.COPY, "copy-button");
-    copyBtn.setTooltip(new Tooltip("Copy"));
+    setTooltip(copyBtn, "Copy");
     copyBtn.setOnAction(e -> {
       ClipboardContent clipboardContent = new ClipboardContent();
       clipboardContent.putString(value == null ? "" : value);

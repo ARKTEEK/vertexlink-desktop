@@ -1,11 +1,8 @@
 package vertexlink.ui.resources.device;
 
-import java.util.function.Consumer;
-
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -21,20 +18,16 @@ public class DeviceHeaderCard extends VBox {
   private static final String STATUS_SHUTTING_DOWN_CLASS = "status-shutting-down";
 
   private final Label statusLabel = new Label();
-  private final TextField searchField = new TextField();
   private final Button powerBtn;
-  private final Button searchToggleBtn;
   private final Button refreshBtn;
-  private boolean searchOpen = false;
   private boolean lastConnected = false;
 
   public DeviceHeaderCard(
       String deviceName,
       boolean connected,
       Runnable onToggleConnection,
-      Runnable onRefresh,
-      Consumer<String> onSearch) {
-    super(8);
+      Runnable onRefresh) {
+    super(0);
     getStyleClass().add("header-card");
 
     Label nameLabel = new Label(deviceName);
@@ -47,9 +40,9 @@ public class DeviceHeaderCard extends VBox {
 
     StackPane avatar = new StackPane();
     avatar.getStyleClass().add("header-avatar");
-    avatar.setMinSize(36, 36);
-    avatar.setPrefSize(36, 36);
-    avatar.setMaxSize(36, 36);
+    avatar.setMinSize(40, 40);
+    avatar.setPrefSize(40, 40);
+    avatar.setMaxSize(40, 40);
 
     avatar.getChildren().add(
         IconFactory.createIcon(IconPaths.DESKTOP, "desktop-icon"));
@@ -67,12 +60,8 @@ public class DeviceHeaderCard extends VBox {
       }
     });
 
-    searchToggleBtn = ComponentFactory.createIconButton(IconPaths.SEARCH, "header-action-btn");
-    searchToggleBtn.setOnAction(e -> {
-      toggleSearch();
-    });
-
     refreshBtn = ComponentFactory.createIconButton(IconPaths.REFRESH, "header-action-btn");
+    ComponentFactory.setTooltip(refreshBtn, "Refresh devices");
     refreshBtn.setOnAction(e -> {
       if (onRefresh != null) {
         onRefresh.run();
@@ -81,27 +70,22 @@ public class DeviceHeaderCard extends VBox {
 
     setConnected(connected);
 
-    HBox actions = new HBox(6, searchToggleBtn, refreshBtn, powerBtn);
+    HBox actions = new HBox(6, refreshBtn, powerBtn);
     actions.setAlignment(Pos.CENTER_RIGHT);
 
     HBox topRow = new HBox(8, deviceDetails, spacer, actions);
     topRow.setAlignment(Pos.CENTER_LEFT);
 
-    searchField.setPromptText("Search devices...");
-    searchField.getStyleClass().add("search-field");
-    searchField.setMaxWidth(Double.MAX_VALUE);
-    searchField.textProperty().addListener((obs, oldV, newV) -> {
-      if (onSearch != null) {
-        onSearch.accept(newV);
-      }
-    });
+    Label caption = new Label("LOCAL DEVICE");
+    caption.getStyleClass().add("header-card-caption");
 
-    VBox searchContainer = new VBox(searchField);
-    searchContainer.getStyleClass().add("search-container");
-    searchContainer.setManaged(false);
-    searchContainer.setVisible(false);
+    HBox captionBar = new HBox(caption);
+    captionBar.getStyleClass().add("header-card-caption-bar");
 
-    getChildren().addAll(topRow, searchContainer);
+    VBox body = new VBox(topRow);
+    body.getStyleClass().add("header-card-body");
+
+    getChildren().addAll(captionBar, body);
   }
 
   public void setConnected(boolean connected) {
@@ -111,17 +95,16 @@ public class DeviceHeaderCard extends VBox {
     statusLabel.getStyleClass().removeAll(STATUS_ON_CLASS, STATUS_OFF_CLASS, STATUS_SHUTTING_DOWN_CLASS);
     statusLabel.getStyleClass().add(connected ? STATUS_ON_CLASS : STATUS_OFF_CLASS);
 
+    ComponentFactory.setTooltip(powerBtn, connected ? "Stop being discoverable" : "Become discoverable");
     powerBtn.setDisable(false);
     refreshBtn.setDisable(false);
 
-    if (powerBtn != null) {
-      if (connected) {
-        if (!powerBtn.getStyleClass().contains("active")) {
-          powerBtn.getStyleClass().add("active");
-        }
-      } else {
-        powerBtn.getStyleClass().remove("active");
+    if (connected) {
+      if (!powerBtn.getStyleClass().contains("active")) {
+        powerBtn.getStyleClass().add("active");
       }
+    } else {
+      powerBtn.getStyleClass().remove("active");
     }
   }
 
@@ -138,22 +121,6 @@ public class DeviceHeaderCard extends VBox {
       refreshBtn.setDisable(true);
     } else {
       setConnected(lastConnected);
-    }
-  }
-
-  private void toggleSearch() {
-    searchOpen = !searchOpen;
-
-    if (searchOpen) {
-      searchField.setVisible(true);
-      searchField.setManaged(true);
-      searchToggleBtn.getStyleClass().add("active");
-      searchField.requestFocus();
-    } else {
-      searchToggleBtn.getStyleClass().remove("active");
-      searchField.setVisible(false);
-      searchField.setManaged(false);
-      searchField.clear();
     }
   }
 }

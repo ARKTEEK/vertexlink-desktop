@@ -16,37 +16,37 @@ public class DeviceHeroCard extends VBox {
 
   public DeviceHeroCard(Device device) {
     getStyleClass().add("hero-card");
-    setPadding(new Insets(16));
+    setPadding(new Insets(14));
 
     Label nameLabel = new Label(device.getName());
     nameLabel.getStyleClass().add("hero-device-name");
 
     boolean connected = device.getStatus() == DeviceStatus.ONLINE;
-    Label pairedBadge = ComponentFactory.createStatusBadge(
-        device.isPaired() ? "Paired" : "Not Paired",
-        device.isPaired());
+    Label pairedBadge = device.isPaired()
+        ? ComponentFactory.createNeutralBadge("Paired")
+        : ComponentFactory.createStatusBadge("Not Paired", false);
 
     Label connectionBadge = ComponentFactory.createStatusBadge(
         connected ? "Online" : "Offline",
         connected);
 
-    HBox badgeRow = new HBox(6, pairedBadge, connectionBadge);
+    HBox badgeRow = new HBox(6, connectionBadge, pairedBadge);
     badgeRow.setAlignment(Pos.CENTER_LEFT);
     badgeRow.getStyleClass().add("hero-badge-row");
 
-    VBox textBox = new VBox(8, nameLabel, badgeRow);
+    VBox textBox = new VBox(6, nameLabel, badgeRow);
     textBox.setAlignment(Pos.CENTER_LEFT);
 
     StackPane avatar = new StackPane();
     avatar.getStyleClass().add("hero-device-avatar");
-    avatar.setMinSize(64, 64);
-    avatar.setPrefSize(64, 64);
-    avatar.setMaxSize(64, 64);
+    avatar.setMinSize(40, 40);
+    avatar.setPrefSize(40, 40);
+    avatar.setMaxSize(40, 40);
 
     avatar.getChildren().add(
-        IconFactory.createIcon(IconPaths.PHONE, "phone-icon-big"));
+        IconFactory.createIcon(IconPaths.PHONE, "phone-icon"));
 
-    HBox content = new HBox(14, avatar, textBox);
+    HBox content = new HBox(12, avatar, textBox);
     content.setAlignment(Pos.CENTER_LEFT);
 
     getChildren().add(content);

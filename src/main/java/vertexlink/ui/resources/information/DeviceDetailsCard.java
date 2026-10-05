@@ -8,7 +8,7 @@ import vertexlink.ui.resources.global.ComponentFactory;
 public class DeviceDetailsCard extends VBox {
 
   public DeviceDetailsCard(Device device) {
-    super(4);
+    super(8);
 
     Label sectionLabel = new Label("CONNECTION DETAILS");
     sectionLabel.getStyleClass().add("info-section-label");

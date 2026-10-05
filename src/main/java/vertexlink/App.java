@@ -60,7 +60,7 @@ public class App extends Application {
     VBox root = new VBox(titleBar, canvasLayer);
     root.getStyleClass().add("app-shell");
 
-    Scene scene = new Scene(root, 470, 600);
+    Scene scene = new Scene(root, 470, 700);
     String cssPath = getClass().getResource("/styles/styles.css").toExternalForm();
     scene.getStylesheets().add(cssPath);
 

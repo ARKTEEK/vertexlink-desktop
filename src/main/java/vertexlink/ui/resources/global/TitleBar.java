@@ -26,9 +26,11 @@ public class TitleBar extends HBox {
     HBox.setHgrow(spacer, Priority.ALWAYS);
 
     Button minimizeBtn = ComponentFactory.createIconButton(IconPaths.MINIMIZE, "title-bar-button");
+    ComponentFactory.setTooltip(minimizeBtn, "Minimize");
     minimizeBtn.setOnAction(e -> stage.setIconified(true));
 
     Button closeBtn = ComponentFactory.createIconButton(IconPaths.CLOSE, "title-bar-button close-window");
+    ComponentFactory.setTooltip(closeBtn, "Close");
     closeBtn.setOnAction(e -> stage.close());
 
     getChildren().addAll(titleLabel, spacer, minimizeBtn, closeBtn);

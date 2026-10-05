@@ -1,6 +1,5 @@
 package vertexlink.ui.resources.information;
 
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -14,14 +13,13 @@ import vertexlink.ui.resources.global.IconPaths;
 
 public class InformationPanel extends VBox {
   private final VBox heroBox = new VBox();
-  private final VBox detailsBox = new VBox(12);
-  private final VBox emptyState = new InformationEmptyState();
+  private final VBox detailsBox = new VBox();
 
   public InformationPanel(Runnable onClose) {
-    super(18);
+    super(16);
     getStyleClass().add("info-panel");
-    setPrefWidth(300);
-    setPadding(new Insets(18));
+    setMinHeight(470);
+    setMaxHeight(Region.USE_PREF_SIZE);
 
     Label title = new Label("Device Info");
     title.getStyleClass().add("info-title");
@@ -29,20 +27,18 @@ public class InformationPanel extends VBox {
     Region spacer = new Region();
     HBox.setHgrow(spacer, Priority.ALWAYS);
 
-    Button closeBtn = ComponentFactory.createIconButton(IconPaths.CLOSE, "close-button");
+    Button closeBtn = ComponentFactory.createIconButton(IconPaths.CLOSE, "header-action-btn");
+    ComponentFactory.setTooltip(closeBtn, "Close");
     closeBtn.setOnAction(e -> {
       if (onClose != null) {
         onClose.run();
       }
     });
 
-    HBox header = new HBox(title, spacer, closeBtn);
-    header.setAlignment(Pos.CENTER_LEFT);
+    HBox titleRow = new HBox(8, title, spacer, closeBtn);
+    titleRow.setAlignment(Pos.CENTER_LEFT);
 
-    detailsBox.getChildren().add(emptyState);
-    VBox.setVgrow(detailsBox, Priority.ALWAYS);
-
-    getChildren().addAll(header, heroBox, detailsBox);
+    getChildren().addAll(titleRow, heroBox, detailsBox);
   }
 
   public void showDevice(Device device) {
@@ -52,6 +48,6 @@ public class InformationPanel extends VBox {
 
   public void clear() {
     heroBox.getChildren().clear();
-    detailsBox.getChildren().setAll(emptyState);
+    detailsBox.getChildren().clear();
   }
 }

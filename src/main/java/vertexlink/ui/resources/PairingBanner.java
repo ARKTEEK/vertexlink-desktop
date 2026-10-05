@@ -6,7 +6,6 @@ import java.util.function.Consumer;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -38,7 +37,7 @@ public class PairingBanner extends HBox {
 
     Button acceptBtn = ComponentFactory.createIconButton(IconPaths.CHECK,
         "pairing-banner-button pairing-banner-accept");
-    acceptBtn.setTooltip(new Tooltip("Accept"));
+    ComponentFactory.setTooltip(acceptBtn, "Accept");
     acceptBtn.setOnAction(e -> {
       if (onResponse != null) {
         onResponse.accept(address, true);
@@ -48,7 +47,7 @@ public class PairingBanner extends HBox {
 
     Button declineBtn = ComponentFactory.createIconButton(IconPaths.CLOSE,
         "pairing-banner-button pairing-banner-decline");
-    declineBtn.setTooltip(new Tooltip("Decline"));
+    ComponentFactory.setTooltip(declineBtn, "Decline");
     declineBtn.setOnAction(e -> {
       if (onResponse != null) {
         onResponse.accept(address, false);
@@ -80,7 +79,7 @@ public class PairingBanner extends HBox {
 
     Button switchBtn = ComponentFactory.createIconButton(IconPaths.CHECK,
         "pairing-banner-button pairing-banner-accept");
-    switchBtn.setTooltip(new Tooltip("Switch to " + incomingDeviceName));
+    ComponentFactory.setTooltip(switchBtn, "Switch to " + incomingDeviceName);
     switchBtn.setOnAction(e -> {
       if (onResolved != null) {
         onResolved.accept(true);
@@ -89,7 +88,7 @@ public class PairingBanner extends HBox {
     });
 
     Button keepBtn = ComponentFactory.createIconButton(IconPaths.CLOSE, "pairing-banner-button pairing-banner-decline");
-    keepBtn.setTooltip(new Tooltip("Keep " + connectedDeviceName));
+    ComponentFactory.setTooltip(keepBtn, "Keep " + connectedDeviceName);
     keepBtn.setOnAction(e -> {
       if (onResolved != null) {
         onResolved.accept(false);
